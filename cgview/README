@@ -1,0 +1,151 @@
+CGView - Circular Genome Viewer
+
+See the following link for full documentation:
+
+http://wishart.biology.ualberta.ca/cgview/
+
+Copyright (C) 2004 Paul Stothard
+
+Please cite the following paper:
+
+Stothard P, Wishart DS. Circular genome visualization and exploration
+using CGView. Bioinformatics. 21:537-539.
+
+This program is free software; you can redistribute it and/or it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2 of the License, or (at your
+option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+USA.
+
+Paul Stothard can be reached by email: stothard@ualberta.ca
+
+----------------------------------------------------------- 
+To test CGView, switch to the cgview directory. Try the following
+command, which generates a PNG image of the map described in the
+cybercell.xml file:
+
+>java -jar cgview.jar -i cybercell.xml -o cybercell.png -f png
+----------------------------------------------------------- 
+Running CGView:
+
+usage: java -jar cgview.jar [options]
+
+Where the options are:
+
+-A <integer> Specifies the label font size to use. This value
+overrides CGView's default label font size and label font size values
+specified in XML input.
+
+-c <integer> Specifies the base to center on when
+zooming. Optional. Default value is 1.
+
+-D <integer> Specifies the legend font size to use. This value
+overrides CGView's default legend font size and legend font size
+values specified in XML input.
+
+-d <real> A value between 0 and 1 that controls the density of tick
+marks. Use 0 for no tick marks or 1 for the default level of tick
+marks. Optional. Default value is 1.
+
+-E <boolean> Whether or not to include text as vector-based objects in
+SVG output. Optional. Default value is true.
+
+-e <boolean> Whether or not to exclude SVG output when generating a
+series of linked images using the -s option. Optional. Default value
+is false.
+
+-f <format> The format of the output: PNG, JPG, SVG, or
+SVGZ. Optional. Default value is PNG.
+
+-h <file>. HTML file to create. Optional. Default value is null.
+
+-H <integer>. The height of the map. This value overrides any value
+specified in the input file. Optional. Default value is set in the
+input file or by CGView.
+
+-i <file> The input file to parse. Required.
+
+-L <integer> Specifies the width of a separate legend to use as the
+legend in HTML output. Optional. Default value is null. If generating
+a linked map series, place a file called legend.png in the includes
+directory that is created. If generating a single HTML file, place a
+file called legend.png into the same directory as the HTML file. When
+the map is rendered, the legend.png image is placed to the right of
+the map.
+
+-o <file> The image file to create. Required, unless -s used to
+specify that an image series is to be written to a directory. An image
+series is made up of PNG and SVG images.
+
+-p <path> The path to the image file in the HTML file created using
+the -h option. Optional. Default is the the value specified using the
+-o option.
+
+-r <boolean> Specifies whether or not legends should be
+hidden. Default value is F.
+
+-R <boolean> Specifies whether or not labels should be hidden. Default
+value is F.
+
+-s <directory> Empty directory to receive an image series. If this
+option is used, a series of zoomed views of the map is generated, and
+values for -c, -f, -h, -o, -p, -u, and -z are
+ignored. Optional. Default value is null.
+
+-S <boolean> Whether or not to reference external stylesheet in HTML
+output. Optional. Default value is false. Set to true automatically
+when -s option is used.
+
+-u <boolean> Whether or not to include calls to the overlib.js
+JavaScript library in HTML image maps for PNG and JPG
+images. Optional. Default value is true.
+
+-D <integer>  Specifies the ruler font size to use. This value
+overrides CGView's default ruler font size and ruler font size
+values specified in XML input.
+
+-W <integer>. The width of the map. This value overrides any value
+specified in the input file. Optional. Default value is set in the
+input file or by CGView.
+
+-x <zoom values>. Specifies the zoom values to be used when generating
+a series of linked maps using the -s option. The values are supplied
+as a comma separated list containing no spaces. The first value must
+be 1. Optional. Default value is 1,6,36.
+
+-z <floating point number> The factor to zoom in by. Optional. Default
+value is 1.0.
+
+Examples: 
+
+1. The command below will read an XML file called "cybercell.xml", and
+will generate a PNG image file called "my_picture.png". An HTML file
+called "view_image.html" will also be created. This HTML file will
+contain the "my_picture.png" image:
+
+java -jar cgview.jar -f png -i cybercell.xml -o my_picture.png -h
+view_image.html
+
+2. The command below will read an XML file called "cybercell.xml", and
+will generate a collection of linked images and HTML pages in the
+directory called "directory_for_series". The complete series can be
+explored by loading the file "index.html", which will be in the
+"directory_for_series" directory. Note that generating an image series
+can take more than an hour.
+
+java -jar cgview.jar -i cybercell.xml -s directory_for_series -x true
+
+Note: If you obtain an "Out of Memory" error when drawing a very large
+map, try increasing Java's heap size using the -Xmx option. For
+example, use the command: 
+
+java -jar -Xmx500m cgview.jar -i cybercell.xml -o cybercell.png -f png

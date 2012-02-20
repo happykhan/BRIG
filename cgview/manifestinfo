@@ -1,0 +1,6 @@
+Main-Class: ca/ualberta/stothard/cgview/CgviewIO
+Class-Path: lib/batik-awt-util.jar lib/batik-dom.jar lib/batik-svggen.jar lib/batik-util.jar lib/batik-xml.jar lib/commons-lang-2.0.jar lib/jargs.jar lib/xercesImpl.jar
+
+
+
+
