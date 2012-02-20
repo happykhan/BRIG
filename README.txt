@@ -1,4 +1,4 @@
-Copyright Nabil Alikhan 2010.
+Copyright Nabil Alikhan 2010-201.
 This java application can produce CGView rendered circular genome images 
 based on BLAST output.
 
