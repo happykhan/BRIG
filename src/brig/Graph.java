@@ -984,27 +984,32 @@ public class Graph extends javax.swing.JFrame {
     }
     
     public String SamcontigCoverage(String samFile, String outDirectory, String file, int div) throws IOException {
-        int[] map = new int[1];
+        int[] map = new int[7000000];
         FileWriter fstream5 = new FileWriter(outDirectory + BRIG.SL + BRIG.FetchFilename(file) + ".graph");
         BufferedWriter out = new BufferedWriter(fstream5);
         SAMFileReader inputSam = new SAMFileReader( new File(samFile) );
+        inputSam.setValidationStringency(SAMFileReader.ValidationStringency.LENIENT);
         updateProgress("Reading sam/bam file..");
         int count = 1;
+        int maxSize = 0; 
         for (SAMRecord samRecord : inputSam) {
-            if(count % 100000 == 0 ){
+            if (count % 10000 == 0) {
                 updateProgress("Read " + count + " records...");
             }
             count++;
-            
             for (int j = samRecord.getAlignmentStart(); j < samRecord.getAlignmentEnd(); j++) {
                 if (samRecord.getAlignmentStart() != 0) {
                     if (samRecord.getAlignmentEnd() >= map.length) {
-                        map = expand(map, samRecord.getAlignmentEnd());
+                        map = expand(map, samRecord.getAlignmentEnd() + 100000);
+                    }
+                    if (samRecord.getAlignmentEnd() > maxSize ){
+                        maxSize = samRecord.getAlignmentEnd();
                     }
                     map[j] = map[j] + 1;
                 }
             }
         }
+        map = Arrays.copyOfRange(map, 0, maxSize);
  /*       BufferedReader in = new BufferedReader(new FileReader(samFile));
         String line = "";
         Pattern SQpattern = Pattern.compile("^@SQ.+LN:(\\d+)");

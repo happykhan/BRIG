@@ -60,7 +60,7 @@ public class BRIG extends Thread{
     public static String PROFILE_LOCATION = "default-BRIG.xml";
     public static String SL = File.separator;
     public static int GEN_LENGTH = 0;
-    public static String header = "BLAST Ring Image Generator v0.95-dev.0003";
+    public static String header = "BLAST Ring Image Generator v0.95-dev.0005";
     public One parent;
     static PipedOutputStream OUT = new PipedOutputStream();
     public final static Logger LOGGER = Logger.getLogger(BRIGLogger.class.getName());
