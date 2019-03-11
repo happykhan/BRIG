@@ -1,8 +1,8 @@
 BRIG is a cross-platform (Windows/Mac/Unix) application that can display circular comparisons between a large number of 
 genomes, with a focus on handling genome assembly data.
 
-Major Features
-==============
+**Major Features:**
+
 * Images show similarity between a central reference sequence and other sequences as concentric rings.
 * BRIG will perform all BLAST comparisons and file parsing automatically via a simple GUI.
 * Contig boundaries and read coverage can be displayed for draft genomes; customized graphs and annotations can be displayed.
