@@ -1,2 +1,0 @@
-brig.RevBlastComparator
-brig.Graph
