@@ -102,6 +102,7 @@ public class Graph extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Create custom graph");
+        if (BRIG.APP_ICON != null) setIconImage(BRIG.APP_ICON);
 
         queryBrowseButton.setText("Browse");
         queryBrowseButton.addActionListener(new java.awt.event.ActionListener() {

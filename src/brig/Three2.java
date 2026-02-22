@@ -45,6 +45,7 @@ public class Three2 extends javax.swing.JFrame {
         Element root = BRIG.PROFILE.getRootElement();
         String query = root.getAttributeValue("queryFile");
         setTitle(BRIG.header + " - Confirmation") ;
+        if (BRIG.APP_ICON != null) setIconImage(BRIG.APP_ICON);
         outputField.setText(root.getAttributeValue("outputFolder") + BRIG.SL + BRIG.FetchFilename(query));
         if (root.getAttributeValue("outputFile") != null) {
             outputField.setText(root.getAttributeValue("outputFile"));

@@ -57,6 +57,7 @@ public class About extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("About BRIG");
+        if (BRIG.APP_ICON != null) setIconImage(BRIG.APP_ICON);
 
         jButton1.setText("OK");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
