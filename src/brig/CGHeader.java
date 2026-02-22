@@ -197,6 +197,7 @@ public class CGHeader extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Configure CGVIEW options...");
+        if (BRIG.APP_ICON != null) setIconImage(BRIG.APP_ICON);
 
         jTabbedPane1.setPreferredSize(new java.awt.Dimension(800, 502));
 
