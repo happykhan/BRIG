@@ -1,52 +1,74 @@
-BRIG is a cross-platform (Windows/Mac/Unix) application that can display circular comparisons between a large number of 
-genomes, with a focus on handling genome assembly data.
+# BRIG - BLAST Ring Image Generator
 
-**Major Features:**
+[![CI](https://github.com/happykhan/BRIG/actions/workflows/ci.yml/badge.svg)](https://github.com/happykhan/BRIG/actions/workflows/ci.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![GitHub release](https://img.shields.io/github/v/release/happykhan/BRIG)](https://github.com/happykhan/BRIG/releases/latest)
 
-* Images show similarity between a central reference sequence and other sequences as concentric rings.
-* BRIG will perform all BLAST comparisons and file parsing automatically via a simple GUI.
-* Contig boundaries and read coverage can be displayed for draft genomes; customized graphs and annotations can be displayed.
-* Using a user-defined set of genes as input, BRIG can display gene presence, absence, truncation or sequence variation in a set of complete genomes, draft genomes or even raw, unassembled sequence data.
-* BRIG also accepts SAM-formatted read-mapping files enabling genomic regions present in unassembled sequence data from multiple samples to be compared simultaneously.
+BRIG is a cross-platform (Windows/Mac/Linux) application that displays circular comparison images of multiple genomes using BLAST. It is designed to handle genome assembly data and can show similarity, coverage, annotations and more as concentric rings around a reference sequence.
 
-Available @ http://sourceforge.net/projects/brig/
+![BRIG example image](docs/images/figure7-final-image.jpg)
 
-Installation and usage
-======================
-There's no real 'Installation' process for BRIG itself  but users will require NCBI BLAST+ or BLAST legacy, and Java 1.6
- or greater to be installed.
+## Quick Start
 
-To run BRIG users need to:
+### Download and run
 
-* Download the latest version (BRIG-x.xx-dist.zip) from http://sourceforge.net/projects/brig/
-* Unzip BRIG-x.xx-dist.zip to a desired location
-* Run BRIG.jar, by double clicking.
+1. Download `BRIG.jar` from the [latest release](https://github.com/happykhan/BRIG/releases/latest), or download a native installer (DMG for macOS, MSI for Windows)
+2. Double-click `BRIG.jar` to launch the GUI, or run from the command line:
 
-Users who wish to run BRIG from the command-line need to:
-* Navigate to the unpacked BRIG folder in a command-line interface (terminal, console, command prompt).
-* Run 'java -Xmx1500M -jar BRIG.jar'. Where -Xmx specifies the amount of memory allocated to BRIG.
+```bash
+java -Xmx1500M -jar BRIG.jar
+```
 
+BRIG will automatically download BLAST+ if it is not found on your system.
 
-Feedback/Issues
-===============
-Please report any issues to the [issues page](https://github.com/happykhan/BRIG/issues)
+### CLI Usage
 
-License
-=======
-Copyright Nabil-Fareed Alikhan 2010-2019.
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
-License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later 
-version.
+BRIG also ships a separate CLI JAR for headless/scripted use:
 
-This program is distributed in the hope that it will be useful, but without any warranty; without even the implied 
-warranty of merchantability or fitness for a particular purpose. See the GNU General Public License for more details.
+```bash
+java -jar brig-cli.jar <reference.fasta> <sequence_folder> --output output.png
+```
 
-You should have received a copy of the GNU General Public License along with this program.  If not, 
-see <http://www.gnu.org/licenses/>.
+See the [CLI Usage documentation](https://happykhan.github.io/BRIG/cli/) for full details and options.
 
-Citation
-========
-Please cite the BRIG paper if BRIG is used to generate figures for publications:
+## Features
 
-NF Alikhan, NK Petty, NL Ben Zakour, SA Beatson (2011) BLAST Ring Image Generator (BRIG): simple prokaryote genome 
-comparisons, BMC Genomics, 12:402. doi: [https://doi.org/10.1186/1471-2164-12-402](https://doi.org/10.1186/1471-2164-12-402)
+- Circular comparison images with concentric rings showing BLAST similarity
+- Automatic BLAST comparisons and file parsing via GUI or CLI
+- Contig boundaries and read coverage display for draft genomes
+- Custom graphs and annotations (GenBank, EMBL, tab-delimited)
+- Gene presence/absence/truncation analysis using multi-FASTA references
+- SAM file support for read-mapping comparisons
+- Auto-download of BLAST+ binaries
+- Native macOS and Windows installers
+
+## Documentation
+
+Full documentation is available at **[happykhan.github.io/BRIG](https://happykhan.github.io/BRIG/)**.
+
+## Citation
+
+If you use BRIG in your research, please cite:
+
+> NF Alikhan, NK Petty, NL Ben Zakour, SA Beatson (2011) BLAST Ring Image Generator (BRIG): simple prokaryote genome comparisons. *BMC Genomics*, 12:402. doi: [10.1186/1471-2164-12-402](https://doi.org/10.1186/1471-2164-12-402)
+
+BibTeX:
+```bibtex
+@article{alikhan2011brig,
+  title={BLAST Ring Image Generator (BRIG): simple prokaryote genome comparisons},
+  author={Alikhan, Nabil-Fareed and Petty, Nicola K and Ben Zakour, Nouri L and Beatson, Scott A},
+  journal={BMC Genomics},
+  volume={12},
+  pages={402},
+  year={2011},
+  doi={10.1186/1471-2164-12-402}
+}
+```
+
+## License
+
+Copyright Nabil-Fareed Alikhan 2010-2025. Licensed under the [GNU General Public License v3.0](LICENSE).
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
