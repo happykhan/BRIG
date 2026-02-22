@@ -166,7 +166,7 @@
         <dependency>
             <groupId>com.github.samtools</groupId>
             <artifactId>htsjdk</artifactId>
-            <version>1.128</version>
+            <version>4.3.0</version>
         </dependency>
 
         <!-- Swing Layout Extensions (org.jdesktop.layout) -->
