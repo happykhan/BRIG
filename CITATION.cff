@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the article below."
+title: "BLAST Ring Image Generator (BRIG)"
+authors:
+  - family-names: Alikhan
+    given-names: Nabil-Fareed
+  - family-names: Petty
+    given-names: Nicola K
+  - family-names: Ben Zakour
+    given-names: Nouri L
+  - family-names: Beatson
+    given-names: Scott A
+doi: "10.1186/1471-2164-12-402"
+url: "https://github.com/happykhan/BRIG"
+license: GPL-3.0
+type: software
+preferred-citation:
+  type: article
+  title: "BLAST Ring Image Generator (BRIG): simple prokaryote genome comparisons"
+  authors:
+    - family-names: Alikhan
+      given-names: Nabil-Fareed
+    - family-names: Petty
+      given-names: Nicola K
+    - family-names: Ben Zakour
+      given-names: Nouri L
+    - family-names: Beatson
+      given-names: Scott A
+  journal: "BMC Genomics"
+  year: 2011
+  volume: 12
+  start: 402
+  doi: "10.1186/1471-2164-12-402"

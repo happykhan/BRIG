@@ -24,26 +24,30 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author nabil
  */
 public class SamCoverage {
+
+    private static final Logger log = LoggerFactory.getLogger(SamCoverage.class);
     
     public static void main(String args[]) {
         try {
             if(args.length >= 1 ){
             SamcontigCoverage(args[0], "", "");
             }else{
-                System.out.println("USAGE: SamCoverage converts a standard SAM file into a .graph file for use in BRIG.\n"
+                log.info("USAGE: SamCoverage converts a standard SAM file into a .graph file for use in BRIG.\n"
                         + "Coverage information is dumped to standard out, please pipe to .graph file for use in BRIG.");
-                System.out.println("ERROR: Please specify location of a .sam file.");
+                log.error("Please specify location of a .sam file.");
             }
 
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to process SAM coverage", e);
         }
     }
 
@@ -66,7 +70,7 @@ public class SamCoverage {
                        try {
                         map[j] = map[j] + 1;
                         }catch (Exception e ){
-                            e.printStackTrace();
+                            log.error("Array index error at position {}", j, e);
                         }
                     }
                 } else if (start == stop) {

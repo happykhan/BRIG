@@ -1,0 +1,34 @@
+LOCUS       TEST_FEAT                500 bp    DNA     linear   UNK
+DEFINITION  Test sequence with multiple features for AnnoXML tests.
+ACCESSION   TEST002
+VERSION     TEST002.1
+FEATURES             Location/Qualifiers
+     source          1..500
+                     /organism="Test organism"
+     CDS             10..100
+                     /gene="geneA"
+                     /product="hypothetical protein A"
+                     /locus_tag="TEST_0001"
+     CDS             complement(150..300)
+                     /gene="geneB"
+                     /product="adhesin protein B"
+                     /locus_tag="TEST_0002"
+                     /note="similar to adhesin"
+     gene            350..450
+                     /gene="geneC"
+                     /locus_tag="TEST_0003"
+     CDS             350..450
+                     /gene="geneC"
+                     /product="transporter protein"
+                     /locus_tag="TEST_0003"
+ORIGIN
+        1 atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc
+       61 atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc
+      121 atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc
+      181 atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc
+      241 atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc
+      301 atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc
+      361 atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc
+      421 atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc
+      481 atgcatgcat gcatgcatgc
+//

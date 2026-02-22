@@ -26,11 +26,15 @@ import javax.swing.JColorChooser;
 import javax.swing.JFileChooser;
 import org.jdom.Document;
 import org.jdom.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  *
  * @author Nabil
  */
 public class Options extends javax.swing.JFrame {
+
+    private static final Logger log = LoggerFactory.getLogger(Options.class);
 
     /** Creates new form CGHeader */
     public Options() {
@@ -352,35 +356,24 @@ public class Options extends javax.swing.JFrame {
             }
         });
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jTabbedPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 648, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jButton3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jToggleButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton1)))
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jToggleButton1)
-                    .addComponent(jButton3))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 326, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+        // Wrap each tab panel in a JScrollPane so content is always accessible
+        jTabbedPane1.removeAll();
+        jTabbedPane1.addTab("BRIG settings", new javax.swing.JScrollPane(jPanel1));
+        jTabbedPane1.addTab("Image settings", new javax.swing.JScrollPane(jPanel2));
 
+        // Use BorderLayout so the tabbed pane fills available space on resize
+        getContentPane().setLayout(new java.awt.BorderLayout());
+
+        javax.swing.JPanel buttonPanel = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+        buttonPanel.add(jButton3);
+        buttonPanel.add(jToggleButton1);
+        buttonPanel.add(jButton1);
+
+        getContentPane().add(buttonPanel, java.awt.BorderLayout.NORTH);
+        getContentPane().add(jTabbedPane1, java.awt.BorderLayout.CENTER);
+
+        setMinimumSize(new java.awt.Dimension(680, 420));
+        setPreferredSize(new java.awt.Dimension(700, 480));
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -399,7 +392,7 @@ public class Options extends javax.swing.JFrame {
         if (fc.getSelectedFile() != null) {
             try {
                 blastField.setText( fc.getSelectedFile().toString() );
-            }catch(Exception e){e.printStackTrace();}
+            }catch(Exception e){ log.error("Failed to set BLAST location field", e); }
         }
         
     }//GEN-LAST:event_jToggleButton2ActionPerformed
@@ -430,7 +423,7 @@ public class Options extends javax.swing.JFrame {
                final JFileChooser fc = new JFileChooser();
             try {
                 Document newProfile = BRIG.prepProfile(BRIG.PROFILE);
-                int j = BRIG.saveXML("default-BRIG.xml", newProfile);
+                int j = BRIG.saveXML(BRIG.PROFILE_LOCATION, newProfile);
                 if (j == 0) {
                     JOptionPane.showMessageDialog(this,
                             "Saved!",
@@ -515,7 +508,7 @@ BRIG.dumpXML("errorlog.xml",BRIG.PROFILE);
             BRIG.PROFILE.getRootElement().removeAttribute("reverseDb");
         }
         File bro = new File(blastField.getText());
-        if(!bro.isDirectory() && blastField.getText().compareTo("") != 0){
+        if(!bro.isDirectory() && !blastField.getText().isEmpty()){
             error++;
             errorText = "Blast location is not a valid directory\n";
         }
@@ -568,7 +561,18 @@ BRIG.dumpXML("errorlog.xml",BRIG.PROFILE);
                 emblField.setText(settings.getAttributeValue("emblFiles"));
             }
             if (settings.getAttributeValue("blastLocation") != null) {
-                blastField.setText(settings.getAttributeValue("blastLocation"));
+                String blastLoc = settings.getAttributeValue("blastLocation");
+                if (blastLoc.isEmpty()) {
+                    // Resolve from PATH so the user sees where BLAST was found
+                    try {
+                        if (BlastSettings.isBlastOk()) {
+                            blastLoc = settings.getAttributeValue("blastLocation");
+                        }
+                    } catch (Exception e) {
+                        log.debug("Could not auto-detect BLAST location", e);
+                    }
+                }
+                blastField.setText(blastLoc);
             }
             if (settings.getAttributeValue("divider") != null) {
                 dividerField.setText(settings.getAttributeValue("divider"));

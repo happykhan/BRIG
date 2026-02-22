@@ -47,5 +47,7 @@ nav:
       - Multi-FASTA Reference: multi-fasta-reference.md
       - Graphs and Assemblies: graphs-and-assemblies.md
       - Custom Annotations: custom-annotations.md
+  - CLI Usage: cli.md
   - Configuration: configuration.md
+  - Changelog: changelog.md
   - Licence: licence.md

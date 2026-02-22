@@ -24,8 +24,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -35,16 +35,20 @@ import java.util.regex.Pattern;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMFileReader;
+import htsjdk.samtools.SAMRecord;
 import org.jdom.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Nabil
  */
 public class Graph extends javax.swing.JFrame {
-  
+
+    private static final Logger log = LoggerFactory.getLogger(Graph.class);
+
     One got = null;
     /** Creates new form Graph */
     public Graph() {
@@ -362,7 +366,7 @@ public class Graph extends javax.swing.JFrame {
     }//GEN-LAST:event_submitActionPerformed
 
     private void compute() throws InterruptedException {
-        if (jComboBox1.getSelectedItem().toString().compareTo("Coverage graph") == 0) {
+        if ("Coverage graph".equals(jComboBox1.getSelectedItem().toString())) {
             updateProgress("Parsing assembly file...");
             try {
                 if(sequenceAddField.getText().endsWith(".sam") || sequenceAddField.getText().endsWith(".bam")  ){
@@ -394,7 +398,7 @@ public class Graph extends javax.swing.JFrame {
             } catch (Exception e) {
                 updateProgress(e.getMessage());
             }
-        } else if (jComboBox1.getSelectedItem().toString().compareTo("Convert graph") == 0) {
+        } else if ("Convert graph".equals(jComboBox1.getSelectedItem().toString())) {
             updateProgress("Converting graph file...");
             try {
                 try {
@@ -417,7 +421,7 @@ public class Graph extends javax.swing.JFrame {
             } catch (Exception e) {
                 updateProgress(e.getMessage());
             }
-        } else if (jComboBox1.getSelectedItem().toString().compareTo("Reorder ace") == 0) {
+        } else if ("Reorder ace".equals(jComboBox1.getSelectedItem().toString())) {
             updateProgress("Reordering ace file...");
             try {
                 reorderGraph();
@@ -431,12 +435,13 @@ public class Graph extends javax.swing.JFrame {
                 String dooo = "";
                 String ou = "";
                 updateProgress("Parsing ace file...");
-                Vector initRing = new Vector();
+                Vector<Object> initRing = new Vector<>();
                 initRing.add("");
                 initRing.add(Color.white);
                 initRing.add(0);
                 initRing.add(sequenceAddField.getText());
-                Vector graph = new Vector();
+                @SuppressWarnings("rawtypes")
+                Vector<Vector> graph = new Vector<>();
                 graph.add(initRing);
                 int  multiFasta =  BRIG.isMultiFasta(queryField.getText());
                 File get  = new File(queryField.getText());
@@ -474,8 +479,7 @@ public class Graph extends javax.swing.JFrame {
                     ia[i] = 0;
                     repeats[i] = 0;
                 }
-                for (int j = 0; j < graph.size(); j++) {
-                    Vector currentRing = (Vector) graph.get(j);
+                for (@SuppressWarnings("rawtypes") Vector currentRing : graph) {
                     for (int k = 3; k < currentRing.size(); k++) {
                         String db = currentRing.get(k).toString();
                         if (System.getProperty("os.name").toLowerCase().indexOf("windows") == -1) {
@@ -499,7 +503,7 @@ public class Graph extends javax.swing.JFrame {
                 updateProgress("Done.");
 
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Error during contig mapping computation", e);
             }
         }
     }
@@ -536,7 +540,7 @@ public class Graph extends javax.swing.JFrame {
 
 
         public void reload(){
-        if (jComboBox1.getSelectedItem().toString().compareTo("Coverage graph") == 0) {
+        if ("Coverage graph".equals(jComboBox1.getSelectedItem().toString())) {
             queryField.setText("");
             sequenceAddField.setText("");
             queryField.setVisible(false);
@@ -550,7 +554,7 @@ public class Graph extends javax.swing.JFrame {
             jLabel5.setVisible(false);
             jLabel6.setVisible(true);
             windowSize.setVisible(true);
-        } else if(jComboBox1.getSelectedItem().toString().compareTo("Contig mapping") == 0){
+        } else if("Contig mapping".equals(jComboBox1.getSelectedItem().toString())){
              jLabel6.setVisible(false);
             windowSize.setVisible(false);
             queryField.setText("");
@@ -565,7 +569,7 @@ public class Graph extends javax.swing.JFrame {
             jLabel1.setVisible(true);
             jLabel3.setVisible(false);
             jLabel5.setVisible(true);
-        } else if (jComboBox1.getSelectedItem().toString().compareTo("Convert graph") == 0) {
+        } else if ("Convert graph".equals(jComboBox1.getSelectedItem().toString())) {
             jLabel6.setVisible(true);
             windowSize.setVisible(true);
             //queryField.setText("");
@@ -580,7 +584,7 @@ public class Graph extends javax.swing.JFrame {
             jLabel1.setVisible(true);
             jLabel3.setVisible(true);
             jLabel5.setVisible(true);
-        } else if (jComboBox1.getSelectedItem().toString().compareTo("Reorder ace") == 0) {
+        } else if ("Reorder ace".equals(jComboBox1.getSelectedItem().toString())) {
             jLabel6.setVisible(false);
             windowSize.setVisible(false);
             queryField.setText("");
@@ -604,19 +608,19 @@ public class Graph extends javax.swing.JFrame {
         List<Element> existDir = BRIG.PROFILE.getRootElement().getChildren("refDir");
         Element child = new Element("refDir");
         boolean exist = false;
-        for (int i = 0; i < existDir.size(); i++) {
-            if (dir.getAbsolutePath().compareTo(new File(existDir.get(i).getAttributeValue("location")).getAbsolutePath()) == 0) {
+        for (Element existDirElem : existDir) {
+            if (dir.getAbsolutePath().equals(new File(existDirElem.getAttributeValue("location")).getAbsolutePath())) {
                 exist = true;
-                child = existDir.get(i);
+                child = existDirElem;
             }
         }
-        Vector fil = One.SearchDir(dir.getAbsolutePath());
+        Vector<String> fil = One.SearchDir(dir.getAbsolutePath());
         List<Element> exFiles = child.getChildren("refFile");
         if (exist) {
-            for (int i = 0; i < fil.size(); i++) {
+            for (String filEntry : fil) {
                 boolean fileExist = false;
-                for (int j = 0; j < exFiles.size(); j++) {
-                    if (exFiles.get(j).getAttributeValue("location").compareTo(add.getAbsolutePath()) == 0) {
+                for (Element exFile : exFiles) {
+                    if (exFile.getAttributeValue("location").equals(add.getAbsolutePath())) {
                         fileExist = true;
                     }
                 }
@@ -636,11 +640,9 @@ public class Graph extends javax.swing.JFrame {
     }
 
     public String reorderGraph() {
-        try {
+        try (BufferedWriter out1 = new BufferedWriter(new FileWriter(outputFolderField.getText() + BRIG.SL + BRIG.FetchFilename(sequenceAddField.getText()) + "new.ace"));
+             BufferedReader in = new BufferedReader(new FileReader(queryField.getText()))) {
             String line = "";
-            FileWriter fstream4 = new FileWriter(outputFolderField.getText() + BRIG.SL + BRIG.FetchFilename(sequenceAddField.getText()) + "new.ace");
-            BufferedWriter out1 = new BufferedWriter(fstream4);
-            BufferedReader in = new BufferedReader(new FileReader(queryField.getText()));
             String name = "";
             int on = 0;
             int totalContigs = 0;
@@ -648,43 +650,40 @@ public class Graph extends javax.swing.JFrame {
             try {
                 while ((line = in.readLine()) != null) {
                     if (line.startsWith(">")) {
-                        BufferedReader blast = new BufferedReader(new FileReader(sequenceAddField.getText()));
-                        String[] lineArray = line.split("\\s+");
-                        String get = "";
-                        name = lineArray[0].replaceAll(">", "");
-                        while ((get = blast.readLine()) != null) {
-                            if (get.startsWith("AS")) {
-                                String[] g = get.split("\\s+");
-                                totalContigs = Integer.parseInt(g[1]);
-                                out1.write(get);
-                                out1.newLine();
-                                out1.newLine();
-                            } else if (get.startsWith("CO")) {
-                                if (get.contains(name)) {
-                                    on = 1;
+                        try (BufferedReader blast = new BufferedReader(new FileReader(sequenceAddField.getText()))) {
+                            String[] lineArray = line.split("\\s+");
+                            String get = "";
+                            name = lineArray[0].replaceAll(">", "");
+                            while ((get = blast.readLine()) != null) {
+                                if (get.startsWith("AS")) {
+                                    String[] g = get.split("\\s+");
+                                    totalContigs = Integer.parseInt(g[1]);
                                     out1.write(get);
                                     out1.newLine();
-                                    currentContig++;
-                                } else {
-                                    on = 0;
+                                    out1.newLine();
+                                } else if (get.startsWith("CO")) {
+                                    if (get.contains(name)) {
+                                        on = 1;
+                                        out1.write(get);
+                                        out1.newLine();
+                                        currentContig++;
+                                    } else {
+                                        on = 0;
+                                    }
+                                } else if (on == 1) {
+                                    out1.write(get);
+                                    out1.newLine();
                                 }
-                            } else if (on == 1) {
-                                out1.write(get);
-                                out1.newLine();
                             }
                         }
-                        blast.close();
                         updateProgress((int) (100 * ((double) currentContig / (double) totalContigs)) + "% Complete");
                     }
                 }
-                
+
             } catch (Exception e) {
-                System.out.println(line);
+                log.error("Error reordering graph at line: {}", line, e);
                 updateProgress("SYS_ERROR: " + e.getMessage());
-                e.printStackTrace();
             }
-            in.close();
-            out1.close();
         } catch (Exception e) {
             updateProgress("SYS_ERROR: " + e.getMessage());
         }
@@ -692,20 +691,21 @@ public class Graph extends javax.swing.JFrame {
     }
 
     public String checkGraph() throws FileNotFoundException, IOException {
-        BufferedReader in = new BufferedReader(new FileReader(seqField.getText()));
-        String line = "";
-        int lineNum = 0 ;
-        while ((line = in.readLine()) != null) {
-            lineNum++;
-            if (!line.contains("#")) {
-                String[] lineArray = line.split("\t");
-                if (Integer.parseInt( lineArray[1] ) - Integer.parseInt( lineArray[0] )  >1 ){
-                    return "SYS_ERROR: Values must be listed for a single base pair only;\n check line "
-                            + lineNum +" \"" + lineArray[0]+"  "+lineArray[1]+"  "+lineArray[2] + "\"";
+        try (BufferedReader in = new BufferedReader(new FileReader(seqField.getText()))) {
+            String line = "";
+            int lineNum = 0 ;
+            while ((line = in.readLine()) != null) {
+                lineNum++;
+                if (!line.contains("#")) {
+                    String[] lineArray = line.split("\t");
+                    if (Integer.parseInt( lineArray[1] ) - Integer.parseInt( lineArray[0] )  >1 ){
+                        return "SYS_ERROR: Values must be listed for a single base pair only;\n check line "
+                                + lineNum +" \"" + lineArray[0]+"  "+lineArray[1]+"  "+lineArray[2] + "\"";
+                    }
                 }
             }
+            return null;
         }
-        return null;
     }
 
     
@@ -715,18 +715,14 @@ public class Graph extends javax.swing.JFrame {
             if (BRIG.PROFILE.getRootElement().getChild("brig_settings").getAttributeValue("blastLocation") != null) {
                 blastLocation = BRIG.PROFILE.getRootElement().getChild("brig_settings").getAttributeValue("blastLocation");
                 if (!(BRIG.PROFILE.getRootElement().getChild("brig_settings").getAttributeValue("blastLocation").endsWith(BRIG.SL))) {
-                    if (BRIG.PROFILE.getRootElement().getChild("brig_settings").getAttributeValue("blastLocation").compareTo("") != 0) {
+                    if (!BRIG.PROFILE.getRootElement().getChild("brig_settings").getAttributeValue("blastLocation").isEmpty()) {
                         blastLocation += BRIG.SL;
                     }
                 }
             }
         }
-        String exec;
-        if (BRIG.PROFILE.getRootElement().getAttribute("blastPlus") != null) {
-            exec = (blastLocation + "makeblastdb -dbtype nucl  -in " + sequenceAddField.getText());
-        } else {
-            exec = (blastLocation + "formatdb -p F -i " + sequenceAddField.getText());
-        }
+        List<String> dbCmd = new ArrayList<>();
+        dbCmd.addAll(Arrays.asList(blastLocation + "makeblastdb", "-dbtype", "nucl", "-in", sequenceAddField.getText()));
         try {
             int div = 1000 ;
             try{
@@ -735,49 +731,44 @@ public class Graph extends javax.swing.JFrame {
                 div = 1000;
             }
             // Run blast against query & ref
+            String exec = BRIG.formatCommand(dbCmd);
             updateProgress(exec);
             String data = "";
-            Process p = Runtime.getRuntime().exec(exec);
-            InputStream istrm = p.getErrorStream();
-            InputStreamReader istrmrdr = new InputStreamReader(istrm);
-            BufferedReader buffrdr = new BufferedReader(istrmrdr);
-            String ergo = "";            
-            while ((data = buffrdr.readLine()) != null) {
-                ergo += data + "\n";
+            Process p = BRIG.execCommand(dbCmd);
+            String ergo = "";
+            try (BufferedReader buffrdr = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+                while ((data = buffrdr.readLine()) != null) {
+                    ergo += data + "\n";
+                }
             }
             if (ergo.length() > 3) {
                 updateProgress(ergo);
             } else {
                 String ou = outputFolderField.getText() + BRIG.SL + BRIG.FetchFilename(queryField.getText()) + "vs" + BRIG.FetchFilename(sequenceAddField.getText()) + ".tab";
                 updateProgress("Success!");
-                if (BRIG.PROFILE.getRootElement().getAttribute("blastPlus") != null) {
-                    //   exec = blastLocation + blastType + " -outfmt 6 -query " + goodRingFile + " -db " + queryFastaFile + " -out " + ou + " " + blastOptions;
-                    exec = (blastLocation + "blastn -outfmt 6  -query " + queryField.getText() + " -db " + sequenceAddField.getText() + " -out " + ou + " "  + blastOptionField.getText() );
-                } else {
-                    exec = (blastLocation + "blastall -n T -m8 -i " + queryField.getText() + " -d " + sequenceAddField.getText() + " -o " + ou + " -p blastn " + blastOptionField.getText());
-                }
+                List<String> blastCmd = new ArrayList<>();
+                blastCmd.addAll(Arrays.asList(blastLocation + "blastn", "-outfmt", "6", "-query", queryField.getText(), "-db", sequenceAddField.getText(), "-out", ou));
+                blastCmd.addAll(BRIG.tokenizeOptions(blastOptionField.getText()));
+                exec = BRIG.formatCommand(blastCmd);
                 updateProgress(exec);
-                p = Runtime.getRuntime().exec(exec);
-                istrm = p.getErrorStream();
-                istrmrdr = new InputStreamReader(istrm);
-                buffrdr = new BufferedReader(istrmrdr);
+                p = BRIG.execCommand(blastCmd);
                 ergo = "";
                 String line = "";
-                while ((data = buffrdr.readLine()) != null) {
-                    ergo += data + "\n";
+                try (BufferedReader buffrdr2 = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+                    while ((data = buffrdr2.readLine()) != null) {
+                        ergo += data + "\n";
+                    }
                 }
                 if (ergo.length() > 3) {
                     updateProgress(ergo);
                 } else {
                     updateProgress("Success!");
-                    try {
+                    try (BufferedWriter out1 = new BufferedWriter(new FileWriter(outputFolderField.getText() + BRIG.SL + BRIG.FetchFilename(queryField.getText()) + "new.graph"))) {
                         int[] map = new int[BRIG.FastaLength(sequenceAddField.getText(), false)];
                         String[] res = sortBlast(ou);
-                        FileWriter fstream4 = new FileWriter(outputFolderField.getText() + BRIG.SL + BRIG.FetchFilename(queryField.getText()) + "new.graph");
-                        BufferedWriter out1 = new BufferedWriter(fstream4);
-                        for (int j = 0; j < res.length; j++) {
+                        for (String re : res) {
                             // For each blast result, look up coverage value in file.
-                            String[] resultsArray = res[j].split("\t");
+                            String[] resultsArray = re.split("\t");
                             boolean On = false;
                             int oldStart = Integer.parseInt(resultsArray[6]);
                             int oldStop = Integer.parseInt(resultsArray[7]);
@@ -798,49 +789,49 @@ public class Graph extends javax.swing.JFrame {
                                 newStart = 0 ;
                             }
                             int trimStart = 0;
-                            BufferedReader in = new BufferedReader(new FileReader(seqField.getText()));
-                            while ((line = in.readLine()) != null) {
-                                String[] lineArray = line.split("\t");
-                                if (line.startsWith("#")) {                                    
-                                    if( resultsArray[0].compareTo(lineArray[2]) == 0 ){
-                                        trimStart = Integer.parseInt(lineArray[0].replaceAll("\\D+", ""));
-                                        int st = newStart;
-                                        int sp = newStop;
-                                        if( st == 0 ){
-                                            st =1;
+                            try (BufferedReader in = new BufferedReader(new FileReader(seqField.getText()))) {
+                                while ((line = in.readLine()) != null) {
+                                    String[] lineArray = line.split("\t");
+                                    if (line.startsWith("#")) {
+                                        if( resultsArray[0].equals(lineArray[2]) ){
+                                            trimStart = Integer.parseInt(lineArray[0].replaceAll("\\D+", ""));
+                                            int st = newStart;
+                                            int sp = newStop;
+                                            if( st == 0 ){
+                                                st =1;
+                                            }
+                                            if (sp >= map.length) {
+                                                sp = map.length - 1;
+                                            }
+                                            out1.write("#" + st + "\t" + sp + "\t" + resultsArray[0]);
+                                            out1.newLine();
+                                            On = true;
+                                        }else{
+                                            On = false;
                                         }
-                                        if (sp >= map.length) {
-                                            sp = map.length - 1;
-                                        }
-                                        out1.write("#" + st + "\t" + sp + "\t" + resultsArray[0]);
-                                        out1.newLine();
-                                        On = true;
-                                    }else{
-                                        On = false;
-                                    }
-                                } else {
-                                    if( On ){
-                                        int trim = Integer.parseInt( lineArray[0])-trimStart;
-                                        if(trim >= (oldStart) &&
-                                          trim <= (oldStop ) && (newStart + (trim - oldStart) < map.length )) {
-                                         /*   int eleStart = Integer.parseInt(lineArray[0]);
-                                            int eleStop = Integer.parseInt(lineArray[1]);
-                                            if( eleStop - eleStart  > 1  ){
-                                                for( int k=eleStart; k< eleStop;k++){
-                                                    if(k <= oldStop){
-                                                        map[newStart + (trim - oldStart) + (k-eleStart)] =  (int) (Double.parseDouble(lineArray[2]) );
-                                                        System.out.println((newStart + (trim - oldStart)+ (k-eleStart) )  + "\t" + map[newStart + (trim - oldStart)  ]);
+                                    } else {
+                                        if( On ){
+                                            int trim = Integer.parseInt( lineArray[0])-trimStart;
+                                            if(trim >= (oldStart) &&
+                                              trim <= (oldStop ) && (newStart + (trim - oldStart) < map.length )) {
+                                             /*   int eleStart = Integer.parseInt(lineArray[0]);
+                                                int eleStop = Integer.parseInt(lineArray[1]);
+                                                if( eleStop - eleStart  > 1  ){
+                                                    for( int k=eleStart; k< eleStop;k++){
+                                                        if(k <= oldStop){
+                                                            map[newStart + (trim - oldStart) + (k-eleStart)] =  (int) (Double.parseDouble(lineArray[2]) );
+                                                            System.out.println((newStart + (trim - oldStart)+ (k-eleStart) )  + "\t" + map[newStart + (trim - oldStart)  ]);
+                                                        }
                                                     }
-                                                }
-                                            }else{*/
-                                            map[newStart + (trim - oldStart)] =  (int) (Double.parseDouble(lineArray[2]) );
-                                         //   }
+                                                }else{*/
+                                                map[newStart + (trim - oldStart)] =  (int) (Double.parseDouble(lineArray[2]) );
+                                             //   }
+                                            }
                                         }
                                     }
-                                }
 
+                                }
                             }
-                            in.close();
                         }
                         updateProgress("Calculating coverage...");
                         int hund = 0;
@@ -867,110 +858,100 @@ public class Graph extends javax.swing.JFrame {
                             out1.newLine();
                         }
                         updateProgress("Done.");
-                        out1.close();
                     } catch (Exception e) {
-                        System.out.println(line);
-           //             System.out.println(blastResult);
+                        log.error("Error converting graph at line: {}", line, e);
                         updateProgress("SYS_ERROR: " + e.getMessage());
-                        e.printStackTrace();
                     }
-              //      in.close();
-            //        out1.close();
 
                 }
             }
         } catch (Exception e) {
+            log.error("Error in convertGraph execution", e);
             updateProgress("SYS_ERROR: " + e.getMessage());
-            e.printStackTrace();
-
-
         }
         return (outputFolderField.getText() + BRIG.SL + BRIG.FetchFilename(queryField.getText()) + "new.graph");
     }
     
     public String[] sortBlast(String file) throws IOException {
-        BufferedReader first = new BufferedReader(new FileReader(file));
-        String line = "";
         int num = 0;
-        while ((line = first.readLine()) != null) {
-            if (!line.startsWith("#")) {
-                num++;
+        try (BufferedReader first = new BufferedReader(new FileReader(file))) {
+            String line = "";
+            while ((line = first.readLine()) != null) {
+                if (!line.startsWith("#")) {
+                    num++;
+                }
             }
         }
-        first.close();
         String[] results = new String[num];
-        first = new BufferedReader(new FileReader(file));
-        line = "";
-        int gum = 0;
-        while ((line = first.readLine()) != null) {
-            if (!line.startsWith("#")) {
-                results[gum] = line;
-                gum++;
+        try (BufferedReader first = new BufferedReader(new FileReader(file))) {
+            String line = "";
+            int gum = 0;
+            while ((line = first.readLine()) != null) {
+                if (!line.startsWith("#")) {
+                    results[gum] = line;
+                    gum++;
+                }
             }
         }
-        first.close();
         RevBlastComparator comp = new RevBlastComparator();
         Arrays.sort(results, comp);
         return results;
     }
 
-    public Vector aceParse(Vector<Vector> graph) {
+    @SuppressWarnings("rawtypes")
+    public Vector<Vector> aceParse(Vector<Vector> graph) {
         try {
-            BufferedReader in = new BufferedReader(new FileReader(sequenceAddField.getText()));
-            FileWriter fstream4 = new FileWriter(outputFolderField.getText() + BRIG.SL + "scratch" + BRIG.SL + BRIG.FetchFilename(sequenceAddField.getText()) + "contigs.fna");
-            FileWriter fstream5 = new FileWriter(outputFolderField.getText() + BRIG.SL + "scratch" + BRIG.SL + BRIG.FetchFilename(sequenceAddField.getText()) + "reads.fna");
             graph.get(0).set(3, outputFolderField.getText() + BRIG.SL + "scratch" + BRIG.SL + BRIG.FetchFilename(sequenceAddField.getText()) + "contigs.fna");
             graph.get(0).add(outputFolderField.getText() + BRIG.SL + "scratch" + BRIG.SL + BRIG.FetchFilename(sequenceAddField.getText()) + "reads.fna");
-            BufferedWriter out2 = new BufferedWriter(fstream5);
-            BufferedWriter out1 = new BufferedWriter(fstream4);
-            String line = "";
-            int contigOn = 0;
-            int readOn = 0;
-            updateProgress("Reading ace file..");
-            while ((line = in.readLine()) != null) {
-                Pattern COpattern = Pattern.compile("^CO\\s(\\S+)\\s+");
-                Pattern BQpattern = Pattern.compile("^BQ");
-                Pattern RDpattern = Pattern.compile("^RD\\s(\\S+)\\s+");
-                Pattern QApattern = Pattern.compile("^QA");
-                Matcher COmatcher = COpattern.matcher(line);
-                Matcher BQmatcher = BQpattern.matcher(line);
-                Matcher RDmatcher = RDpattern.matcher(line);
-                Matcher QAmatcher = QApattern.matcher(line);
-                if (COmatcher.find()) {
-                    String contigName = COmatcher.group(1);
-                    out1.write(">" + contigName);
-                    out1.newLine();
-                    contigOn = 1;
-                }
-                if (BQmatcher.find()) {
-                    contigOn = 0;
-                }
-                if (RDmatcher.find()) {
-                    String readName = RDmatcher.group(1);
-                    out2.write(">" + readName);
-                    out2.newLine();
-                    readOn = 1;
-                    contigOn = 0;
-                    //  System.out.println("RD\t" +line);
-                }
-                if (QAmatcher.find()) {
-                    readOn = 0;
-                }
-                if ((contigOn == 1) && !line.contains("CO")) {
-                    out1.write(line);
-                    out1.newLine();
-                }
-                if (readOn == 1 && !line.contains("RD")) {
-                    out2.write(line);
-                    out2.newLine();
+            try (BufferedReader in = new BufferedReader(new FileReader(sequenceAddField.getText()));
+                 BufferedWriter out1 = new BufferedWriter(new FileWriter(outputFolderField.getText() + BRIG.SL + "scratch" + BRIG.SL + BRIG.FetchFilename(sequenceAddField.getText()) + "contigs.fna"));
+                 BufferedWriter out2 = new BufferedWriter(new FileWriter(outputFolderField.getText() + BRIG.SL + "scratch" + BRIG.SL + BRIG.FetchFilename(sequenceAddField.getText()) + "reads.fna"))) {
+                String line = "";
+                int contigOn = 0;
+                int readOn = 0;
+                updateProgress("Reading ace file..");
+                while ((line = in.readLine()) != null) {
+                    Pattern COpattern = Pattern.compile("^CO\\s(\\S+)\\s+");
+                    Pattern BQpattern = Pattern.compile("^BQ");
+                    Pattern RDpattern = Pattern.compile("^RD\\s(\\S+)\\s+");
+                    Pattern QApattern = Pattern.compile("^QA");
+                    Matcher COmatcher = COpattern.matcher(line);
+                    Matcher BQmatcher = BQpattern.matcher(line);
+                    Matcher RDmatcher = RDpattern.matcher(line);
+                    Matcher QAmatcher = QApattern.matcher(line);
+                    if (COmatcher.find()) {
+                        String contigName = COmatcher.group(1);
+                        out1.write(">" + contigName);
+                        out1.newLine();
+                        contigOn = 1;
+                    }
+                    if (BQmatcher.find()) {
+                        contigOn = 0;
+                    }
+                    if (RDmatcher.find()) {
+                        String readName = RDmatcher.group(1);
+                        out2.write(">" + readName);
+                        out2.newLine();
+                        readOn = 1;
+                        contigOn = 0;
+                        //  System.out.println("RD\t" +line);
+                    }
+                    if (QAmatcher.find()) {
+                        readOn = 0;
+                    }
+                    if ((contigOn == 1) && !line.contains("CO")) {
+                        out1.write(line);
+                        out1.newLine();
+                    }
+                    if (readOn == 1 && !line.contains("RD")) {
+                        out2.write(line);
+                        out2.newLine();
+                    }
                 }
             }
-            in.close();
-            out1.close();
-            out2.close();
             updateProgress("Reading ace file..Complete");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error parsing ACE file", e);
         }
         return graph;
     }
@@ -985,90 +966,90 @@ public class Graph extends javax.swing.JFrame {
     
     public String SamcontigCoverage(String samFile, String outDirectory, String file, int div) throws IOException {
         int[] map = new int[7000000];
-        FileWriter fstream5 = new FileWriter(outDirectory + BRIG.SL + BRIG.FetchFilename(file) + ".graph");
-        BufferedWriter out = new BufferedWriter(fstream5);
-        SAMFileReader inputSam = new SAMFileReader( new File(samFile) );
-        inputSam.setValidationStringency(SAMFileReader.ValidationStringency.LENIENT);
-        updateProgress("Reading sam/bam file..");
-        int count = 1;
-        int maxSize = 0; 
-        for (SAMRecord samRecord : inputSam) {
-            if (count % 10000 == 0) {
-                updateProgress("Read " + count + " records...");
-            }
-            count++;
-            for (int j = samRecord.getAlignmentStart(); j < samRecord.getAlignmentEnd(); j++) {
-                if (samRecord.getAlignmentStart() != 0) {
-                    if (samRecord.getAlignmentEnd() >= map.length) {
-                        map = expand(map, samRecord.getAlignmentEnd() + 100000);
+        try (BufferedWriter out = new BufferedWriter(new FileWriter(outDirectory + BRIG.SL + BRIG.FetchFilename(file) + ".graph"))) {
+            try (SAMFileReader inputSam = new SAMFileReader( new File(samFile) )) {
+                inputSam.setValidationStringency(htsjdk.samtools.ValidationStringency.LENIENT);
+                updateProgress("Reading sam/bam file..");
+                int count = 1;
+                int maxSize = 0;
+                for (SAMRecord samRecord : inputSam) {
+                    if (count % 10000 == 0) {
+                        updateProgress("Read " + count + " records...");
                     }
-                    if (samRecord.getAlignmentEnd() > maxSize ){
-                        maxSize = samRecord.getAlignmentEnd();
-                    }
-                    map[j] = map[j] + 1;
-                }
-            }
-        }
-        map = Arrays.copyOfRange(map, 0, maxSize);
- /*       BufferedReader in = new BufferedReader(new FileReader(samFile));
-        String line = "";
-        Pattern SQpattern = Pattern.compile("^@SQ.+LN:(\\d+)");
-        int length = 0;        
-        updateProgress("Reading sam file..");
-        while ((line = in.readLine()) != null) {
-            if (!line.startsWith("@")) {
-                String[] lineArray = line.split("\t");
-                int start = Integer.parseInt(lineArray[3]);
-                int stop = start + lineArray[9].length();
-                if (start > 0) {
-                    if (start < stop) {
-                        for (int j = start; j < stop; j++) {
-                            try {
-                                map[j] = map[j] + 1;
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                    count++;
+                    for (int j = samRecord.getAlignmentStart(); j < samRecord.getAlignmentEnd(); j++) {
+                        if (samRecord.getAlignmentStart() != 0) {
+                            if (samRecord.getAlignmentEnd() >= map.length) {
+                                map = expand(map, samRecord.getAlignmentEnd() + 100000);
                             }
+                            if (samRecord.getAlignmentEnd() > maxSize ){
+                                maxSize = samRecord.getAlignmentEnd();
+                            }
+                            map[j] = map[j] + 1;
                         }
-                    } else if (start == stop) {
-                        map[start] = map[start] + 1;
                     }
                 }
-            } else if (line.startsWith("@SQ")) {
-                Matcher COmatcher = SQpattern.matcher(line);
-                if (COmatcher.find()) {
-                    length = Integer.parseInt(COmatcher.group(1));
-                    map = new int[length];
-                    System.out.println("# " + length);
-                }
+                map = Arrays.copyOfRange(map, 0, maxSize);
             }
-        }*/
-        updateProgress("Calculating coverage...");
+ /*       BufferedReader in = new BufferedReader(new FileReader(samFile));
+            String line = "";
+            Pattern SQpattern = Pattern.compile("^@SQ.+LN:(\\d+)");
+            int length = 0;
+            updateProgress("Reading sam file..");
+            while ((line = in.readLine()) != null) {
+                if (!line.startsWith("@")) {
+                    String[] lineArray = line.split("\t");
+                    int start = Integer.parseInt(lineArray[3]);
+                    int stop = start + lineArray[9].length();
+                    if (start > 0) {
+                        if (start < stop) {
+                            for (int j = start; j < stop; j++) {
+                                try {
+                                    map[j] = map[j] + 1;
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        } else if (start == stop) {
+                            map[start] = map[start] + 1;
+                        }
+                    }
+                } else if (line.startsWith("@SQ")) {
+                    Matcher COmatcher = SQpattern.matcher(line);
+                    if (COmatcher.find()) {
+                        length = Integer.parseInt(COmatcher.group(1));
+                        map = new int[length];
+                        System.out.println("# " + length);
+                    }
+                }
+            }*/
+            updateProgress("Calculating coverage...");
    //     in.close();
-        int hund = 0;
-        int hundInc = 0;
-        int prevHund = 0;
-        for (int i = 0; i < map.length; i++) {
-            if (map[i] != -1) {
-                if (hundInc >= div) {
-                    //      System.out.println(pretemp + "\t" + prevHund + "\t" + hundInc + "\t" + hund);
-                    out.write((prevHund) + "\t" + (prevHund + hundInc) + "\t" + ((double) hund / (double) hundInc));
-                    //       System.out.println( ((prevHund) + "\t" + (prevHund + hundInc) + "\t" + ((double) hund / (double) hundInc))   );
-                    out.newLine();
-                    prevHund += hundInc;
-                    hundInc = 0;
-                    hund = 0;
+            int hund = 0;
+            int hundInc = 0;
+            int prevHund = 0;
+            for (int i = 0; i < map.length; i++) {
+                if (map[i] != -1) {
+                    if (hundInc >= div) {
+                        //      System.out.println(pretemp + "\t" + prevHund + "\t" + hundInc + "\t" + hund);
+                        out.write((prevHund) + "\t" + (prevHund + hundInc) + "\t" + ((double) hund / (double) hundInc));
+                        //       System.out.println( ((prevHund) + "\t" + (prevHund + hundInc) + "\t" + ((double) hund / (double) hundInc))   );
+                        out.newLine();
+                        prevHund += hundInc;
+                        hundInc = 0;
+                        hund = 0;
+                    }
+                    hund += map[i];
+                    hundInc++;
                 }
-                hund += map[i];
-                hundInc++;
             }
+            if (hundInc > 0) {
+                out.write((prevHund) + "\t" + (prevHund + hundInc) + "\t" + ((double) hund / (double) hundInc));
+                //      System.out.println( (prevHund) + "\t" + (prevHund + hundInc) + "\t" + ((double) hund / (double) hundInc)  );
+                out.newLine();
+            }
+            updateProgress("Done.");
         }
-        if (hundInc > 0) {
-            out.write((prevHund) + "\t" + (prevHund + hundInc) + "\t" + ((double) hund / (double) hundInc));
-            //      System.out.println( (prevHund) + "\t" + (prevHund + hundInc) + "\t" + ((double) hund / (double) hundInc)  );
-            out.newLine();
-        }
-        updateProgress("Done.");
-        out.close();
         return (outDirectory + BRIG.SL + BRIG.FetchFilename(file) + ".graph");
 
     }
@@ -1077,12 +1058,11 @@ public class Graph extends javax.swing.JFrame {
     public String contigCoverage(String aceFile, String outDirectory, int div) throws FileNotFoundException, IOException {
         // CREATE MAP
         int[] map = new int[1];
-        BufferedReader in = new BufferedReader(new FileReader(aceFile));
         String line = "";
         //CREATE list of reads
-        Vector<String> readNameList = new Vector<String>();
-        Vector<Integer> readPositionList = new Vector<Integer>();
-        Vector<Integer> readLengthList = new Vector<Integer>();
+        Vector<String> readNameList = new Vector<>();
+        Vector<Integer> readPositionList = new Vector<>();
+        Vector<Integer> readLengthList = new Vector<>();
         int genomePosition = 0;
         int f = 0;
         int totalReads = 0;
@@ -1090,9 +1070,9 @@ public class Graph extends javax.swing.JFrame {
         int currentRead = 0;
         int gapPosition = 0;
         String contigName = "";
-        Vector<Integer> gapLocations = new Vector<Integer>();
-        FileWriter fstream5 = new FileWriter(outDirectory + BRIG.SL + BRIG.FetchFilename(sequenceAddField.getText()) + ".graph");
-        BufferedWriter out = new BufferedWriter(fstream5);
+        Vector<Integer> gapLocations = new Vector<>();
+        try (BufferedReader in = new BufferedReader(new FileReader(aceFile));
+             BufferedWriter out = new BufferedWriter(new FileWriter(outDirectory + BRIG.SL + BRIG.FetchFilename(sequenceAddField.getText()) + ".graph"))) {
         while ((line = in.readLine()) != null) {
             if (line.startsWith("AS ")) {
                 String[] spaceArray = line.split("\\s+");
@@ -1113,9 +1093,9 @@ public class Graph extends javax.swing.JFrame {
                             map[start] = map[start] + 1;
                         }
                     }
-                    for (int a = 0; a < gapLocations.size(); a++) {
-                        if (gapLocations.get(a) < map.length) {
-                            map[gapLocations.get(a)] = -1;
+                    for (int gapLoc : gapLocations) {
+                        if (gapLoc < map.length) {
+                            map[gapLoc] = -1;
                         }
                     }
                     int pretemp = genomePosition;
@@ -1151,12 +1131,12 @@ public class Graph extends javax.swing.JFrame {
                 String[] linesplit = line.split("\\s+");
                 contigName = linesplit[1];
                 map = new int[(Integer.parseInt(linesplit[2]))];
-                readNameList = new Vector<String>();
-                readPositionList = new Vector<Integer>();
-                readLengthList = new Vector<Integer>();
+                readNameList = new Vector<>();
+                readPositionList = new Vector<>();
+                readLengthList = new Vector<>();
                 isContigSequence = 1;
                 gapPosition = 0;
-                gapLocations = new Vector();
+                gapLocations = new Vector<>();
                 updateProgress((int) (100 * ((double) f / (double) totalReads)) + "% Complete");
             } else if (line.startsWith(
                     "BQ")) {
@@ -1175,7 +1155,7 @@ public class Graph extends javax.swing.JFrame {
                 //RD FETCH length of read SPACE [2]
                 String[] spaceArray = line.split("\\s+");
                 for (int i = 0; i < readNameList.size(); i++) {
-                    if (readNameList.get(i).compareTo(spaceArray[1]) == 0) {
+                    if (readNameList.get(i).equals(spaceArray[1])) {
                         readLengthList.set(i, Integer.parseInt(spaceArray[2]));
                         currentRead = i;
                     }
@@ -1189,7 +1169,7 @@ public class Graph extends javax.swing.JFrame {
             } else if (isContigSequence == 1) {
                 for (int s = 0; s < line.length(); s++) {
                     gapPosition++;
-                    if ("*".compareTo(String.valueOf(line.charAt(s))) == 0) {
+                    if (line.charAt(s) == '*') {
                         gapLocations.add(gapPosition);
 
                     }
@@ -1208,9 +1188,9 @@ public class Graph extends javax.swing.JFrame {
                     map[start] = map[start] + 1;
                 }
             }
-            for (int a = 0; a < gapLocations.size(); a++) {
-                if (gapLocations.get(a) < map.length) {
-                    map[gapLocations.get(a)] = -1;
+            for (int gapLoc : gapLocations) {
+                if (gapLoc < map.length) {
+                    map[gapLoc] = -1;
                 }
             }
             int pretemp = genomePosition;
@@ -1244,8 +1224,7 @@ public class Graph extends javax.swing.JFrame {
                 out.newLine();
             }
         }
-        in.close();
-        out.close();
+        }
         updateProgress("Combined contigs length\t" + genomePosition);
         updateProgress("Done.");
         return (outDirectory + BRIG.SL + BRIG.FetchFilename(sequenceAddField.getText()) + ".graph");
@@ -1253,6 +1232,7 @@ public class Graph extends javax.swing.JFrame {
 
     private void updateProgress(final String text) {
         SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 // Here, we can safely update the GUI
                 // because we'll be called from the
@@ -1268,6 +1248,7 @@ public class Graph extends javax.swing.JFrame {
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
 
+            @Override
             public void run() {
                 new Graph().setVisible(true);
             }
@@ -1303,6 +1284,7 @@ public class Graph extends javax.swing.JFrame {
 
 class RevBlastComparator implements Comparator<String> {
 
+    @Override
     public int compare(String o1, String o2) {
         String[] o1Array = o1.split("\t");
         String[] o2Array = o2.split("\t");

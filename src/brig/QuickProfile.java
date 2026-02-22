@@ -10,7 +10,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU General Public License
  *  along with BRIG.  If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -18,14 +18,19 @@
 package brig;
 
 import java.awt.Image;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import org.jdom.*;
 import org.jdom.input.SAXBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -33,17 +38,39 @@ import org.jdom.input.SAXBuilder;
  */
 public class QuickProfile extends javax.swing.JFrame {
 
+    private static final Logger log = LoggerFactory.getLogger(QuickProfile.class);
+    private static final String RESOURCE_PREFIX = "/brig/resources/profiles/";
+
     /** Creates new form QuickProfile */
     public QuickProfile() {
         initComponents();
+        // Try filesystem first (legacy/dev), then classpath resources
         File prof = new File("profiles");
-        if(!prof.exists()){
-            prof.mkdir();
+        if (prof.isDirectory()) {
+            File[] list = prof.listFiles();
+            if (list != null) {
+                for (int i = 0; i < list.length; i++) {
+                    if (!list[i].isHidden() && list[i].isFile() && !list[i].toString().endsWith(".jpg")) {
+                        norings.addItem(list[i].getName());
+                    }
+                }
+            }
         }
-        File[] list = prof.listFiles();
-        for(int i=0;i<list.length;i++){
-           if(!list[i].isHidden() && list[i].isFile() && !list[i].toString().endsWith(".jpg")){
-                norings.addItem(list[i].getName());
+        if (norings.getItemCount() == 0) {
+            // Load from classpath index
+            try (InputStream idx = getClass().getResourceAsStream(RESOURCE_PREFIX + "profiles-index.txt")) {
+                if (idx != null) {
+                    BufferedReader br = new BufferedReader(new InputStreamReader(idx));
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        line = line.trim();
+                        if (!line.isEmpty()) {
+                            norings.addItem(line);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                log.error("Failed to load profiles index from classpath", e);
             }
         }
     }
@@ -129,66 +156,97 @@ public class QuickProfile extends javax.swing.JFrame {
 
     private void noringsItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_noringsItemStateChanged
         try {
-            File doop = new File("profiles" + BRIG.SL + norings.getSelectedItem().toString() + ".jpg");
-            Image img = ImageIO.read( doop );
-            Image newimg = img.getScaledInstance(400, 400,  java.awt.Image.SCALE_SMOOTH);
-            ImageIcon icon = new ImageIcon(newimg);
-            jLabel87.setIcon(icon);
-            jLabel87.setText("");
+            String selected = norings.getSelectedItem().toString();
+            Image img = null;
+            // Try filesystem first
+            File doop = new File("profiles" + BRIG.SL + selected + ".jpg");
+            if (doop.isFile()) {
+                img = ImageIO.read(doop);
+            } else {
+                // Try classpath
+                try (InputStream in = getClass().getResourceAsStream(RESOURCE_PREFIX + selected + ".jpg")) {
+                    if (in != null) {
+                        img = ImageIO.read(in);
+                    }
+                }
+            }
+            if (img != null) {
+                Image newimg = img.getScaledInstance(400, 400, java.awt.Image.SCALE_SMOOTH);
+                ImageIcon icon = new ImageIcon(newimg);
+                jLabel87.setIcon(icon);
+                jLabel87.setText("");
+            } else {
+                jLabel87.setIcon(null);
+                jLabel87.setText("No preview image could be found.");
+            }
         } catch (IIOException e) {
             jLabel87.setIcon(null);
             jLabel87.setText("No preview image could be found.");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to load profile preview image", e);
         }
     }//GEN-LAST:event_noringsItemStateChanged
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        String fi = "profiles"+BRIG.SL + norings.getSelectedItem().toString();
-        File get = new File(fi);
-        if (get.exists()) {
-            try {
-                SAXBuilder builder = new SAXBuilder();
+        String selected = norings.getSelectedItem().toString();
+        try {
+            SAXBuilder builder = new SAXBuilder();
+            Document temp = null;
+            // Try filesystem first
+            File get = new File("profiles" + BRIG.SL + selected);
+            if (get.isFile()) {
                 try {
-                    Document temp =  builder.build(get.getPath());
-                    if(temp.getRootElement().getAttributeValue("legendPosition") != null ){
-                        System.out.print( temp.getRootElement().getAttributeValue("legendPosition")   );
-                        BRIG.PROFILE.getRootElement().setAttribute("legendPosition",  temp.getRootElement().getAttributeValue("legendPosition") );
-                        if(temp.getRootElement().getChild("cgview_settings") != null ){
-                            BRIG.PROFILE.getRootElement().removeChild("cgview_settings");
-                            Element cop = temp.getRootElement().getChild("cgview_settings");
-                            cop.detach();
-                            BRIG.PROFILE.getRootElement().addContent(cop);
-                            this.dispose();
-                        }else{
-                    JOptionPane.showMessageDialog(this,
-                            get.getName() + " uses an out of date format",
-                            "ERROR!",
-                            JOptionPane.ERROR_MESSAGE);
+                    temp = builder.build(get.getPath());
+                } catch (JDOMException | IOException e) {
+                    // Fall through to classpath attempt
+                }
+            }
+            // Try classpath
+            if (temp == null) {
+                try (InputStream in = getClass().getResourceAsStream(RESOURCE_PREFIX + selected)) {
+                    if (in != null) {
+                        temp = builder.build(in);
                     }
-                    }else{
+                }
+            }
+            if (temp == null) {
+                JOptionPane.showMessageDialog(this,
+                        "Could not find profile: " + selected,
+                        "ERROR!",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (temp.getRootElement().getAttributeValue("legendPosition") != null) {
+                log.debug("Legend position: {}", temp.getRootElement().getAttributeValue("legendPosition"));
+                BRIG.PROFILE.getRootElement().setAttribute("legendPosition", temp.getRootElement().getAttributeValue("legendPosition"));
+                if (temp.getRootElement().getChild("cgview_settings") != null) {
+                    BRIG.PROFILE.getRootElement().removeChild("cgview_settings");
+                    Element cop = temp.getRootElement().getChild("cgview_settings");
+                    cop.detach();
+                    BRIG.PROFILE.getRootElement().addContent(cop);
+                    this.dispose();
+                } else {
                     JOptionPane.showMessageDialog(this,
-                            get.getName() + " uses an out of date format",
-                            "ERROR!",
-                            JOptionPane.ERROR_MESSAGE);
-                    }
-                } catch (JDOMException e) {
-                    JOptionPane.showMessageDialog(this,
-                            get.getName() + " is corrupt because :\n" + e.getMessage(),
-                            "ERROR!",
-                            JOptionPane.ERROR_MESSAGE);
-                } catch (IOException e) {
-                    JOptionPane.showMessageDialog(this,
-                            "Could not read " + get.getName() + " because :\n" + e.getMessage(),
+                            selected + " uses an out of date format",
                             "ERROR!",
                             JOptionPane.ERROR_MESSAGE);
                 }
-            } catch (Exception e) {
+            } else {
                 JOptionPane.showMessageDialog(this,
-                        "This is not a valid save file " + e.getMessage(),
+                        selected + " uses an out of date format",
                         "ERROR!",
                         JOptionPane.ERROR_MESSAGE);
             }
+        } catch (JDOMException e) {
+            JOptionPane.showMessageDialog(this,
+                    selected + " is corrupt because :\n" + e.getMessage(),
+                    "ERROR!",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    "This is not a valid save file " + e.getMessage(),
+                    "ERROR!",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 

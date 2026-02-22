@@ -30,12 +30,16 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JFileChooser;
 import org.jdom.input.SAXBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Nabil
  */
 public class Two extends javax.swing.JFrame {
+
+    private static final Logger log = LoggerFactory.getLogger(Two.class);
 
     private DefaultListModel refModel;
     private DefaultListModel ringModel;
@@ -59,9 +63,10 @@ public class Two extends javax.swing.JFrame {
         ringModel = new DefaultListModel();
         genomeModel = new DefaultListModel();
         refModel = new DefaultListModel();
-        List special = BRIG.PROFILE.getRootElement().getChildren("special");
-        for (int k = 0; k < special.size(); k++) {
-            refModel.addElement(((Element) special.get(k)).getAttributeValue("value"));
+        @SuppressWarnings("unchecked")
+        List<Element> special = BRIG.PROFILE.getRootElement().getChildren("special");
+        for (Element specialElem : special) {
+            refModel.addElement(specialElem.getAttributeValue("value"));
         }
         List<Element> oldRefs = BRIG.PROFILE.getRootElement().getChildren("refDir");
         for (int i = 0; i < oldRefs.size(); i++) {
@@ -667,10 +672,10 @@ public class Two extends javax.swing.JFrame {
     private void newRingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newRingButtonActionPerformed
         save();
         Element newChild = new Element("ring");
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        @SuppressWarnings("unchecked")
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
         // Shift all rings down one, to make room for new ring
-        for (int i = 0; i < doop.size(); i++) {
-            Element ccur = (Element) doop.get(i);
+        for (Element ccur : doop) {
             int nextInt = Integer.parseInt(ccur.getAttributeValue("position"));
             if (nextInt >= (BRIG.POSITION + 1)) {
                 nextInt++;
@@ -689,24 +694,27 @@ public class Two extends javax.swing.JFrame {
 
     private void removeRingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeRingButtonActionPerformed
         save();
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
-        Element currentRing = (Element) doop.get(BRIG.POSITION);
-        for (int z = 0; z < doop.size(); z++) {
-            if (((Element) doop.get(z)).getAttributeValue("position").compareTo(Integer.toString(BRIG.POSITION)) == 0) {
-                currentRing = (Element) doop.get(z);
+        @SuppressWarnings("unchecked")
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        Element currentRing = doop.get(BRIG.POSITION);
+        for (Element elem : doop) {
+            if (Integer.toString(BRIG.POSITION).equals(elem.getAttributeValue("position"))) {
+                currentRing = elem;
             }
         }
         int currInt = Integer.parseInt(currentRing.getAttributeValue("position"));
         currentRing.detach();
-        doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        @SuppressWarnings("unchecked")
+        List<Element> doop2 = BRIG.PROFILE.getRootElement().getChildren("ring");
+        doop = doop2;
         BRIG.POSITION--;
-        for (int z = 0; z < doop.size(); z++) {
-            int pos = Integer.parseInt(((Element) doop.get(z)).getAttributeValue("position"));
+        for (Element elem : doop) {
+            int pos = Integer.parseInt(elem.getAttributeValue("position"));
             if (pos >= currInt  ) {
-                int newInt = Integer.parseInt(((Element) doop.get(z)).getAttributeValue("position")) -1 ;
-                ((Element) doop.get(z)).setAttribute("position", Integer.toString(newInt));
+                int newInt = Integer.parseInt(elem.getAttributeValue("position")) -1 ;
+                elem.setAttribute("position", Integer.toString(newInt));
             }
-        }        
+        }
         if (BRIG.POSITION < 0) {
             BRIG.POSITION = 0;
         }
@@ -765,17 +773,17 @@ public class Two extends javax.swing.JFrame {
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         SAXBuilder builder = new SAXBuilder();
         try {
-            BRIG.PROFILE = builder.build("default-BRIG.xml");
+            BRIG.PROFILE = builder.build(BRIG.PROFILE_LOCATION);
             //Open one page.
             reload();
         } catch (JDOMException e) {
             JOptionPane.showMessageDialog(this,
-                    "default-BRIG.xml is corrupt. Please check:\n" + e.getMessage(),
+                    BRIG.PROFILE_LOCATION + " is corrupt. Please check:\n" + e.getMessage(),
                     "ERROR!",
                     JOptionPane.ERROR_MESSAGE);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this,
-                    "Could not read default-BRIG.xml because:\n" + e.getMessage(),
+                    "Could not read " + BRIG.PROFILE_LOCATION + " because:\n" + e.getMessage(),
                     "ERROR!",
                     JOptionPane.ERROR_MESSAGE);
         }
@@ -841,7 +849,7 @@ public class Two extends javax.swing.JFrame {
                             JOptionPane.INFORMATION_MESSAGE);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Failed to save XML file", e);
             }
         }
     }//GEN-LAST:event_SaveMenuActionPerformed
@@ -861,7 +869,7 @@ public class Two extends javax.swing.JFrame {
                     JOptionPane.ERROR_MESSAGE);
         }
         }catch(Exception e ){
-            e.printStackTrace();
+            log.error("Failed to launch BLAST graph module", e);
             JOptionPane.showMessageDialog(this,
                     "Could not run BLAST, please check it is installed and BRIG's BLAST location is correct",
                     "ERROR!",
@@ -895,7 +903,7 @@ public class Two extends javax.swing.JFrame {
                             JOptionPane.INFORMATION_MESSAGE);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Failed to save profile XML", e);
             }
         }
     }//GEN-LAST:event_jMenuItem8ActionPerformed
@@ -911,21 +919,23 @@ public class Two extends javax.swing.JFrame {
         if (!poolList.isSelectionEmpty()) {
             Object[] add = poolList.getSelectedValues();
             Element root = BRIG.PROFILE.getRootElement();
-            List doop = root.getChildren("ring");
-            Element currentRing = (Element) doop.get(BRIG.POSITION);
-                for (int z = 0; z < doop.size(); z++) {
-                    if (((Element) doop.get(z)).getAttributeValue("position").compareTo(Integer.toString(BRIG.POSITION)) == 0) {
-                        currentRing = (Element) doop.get(z);
+            @SuppressWarnings("unchecked")
+            List<Element> doop = root.getChildren("ring");
+            Element currentRing = doop.get(BRIG.POSITION);
+                for (Element elem : doop) {
+                    if (Integer.toString(BRIG.POSITION).equals(elem.getAttributeValue("position"))) {
+                        currentRing = elem;
                     }
                 }
-            List seq = currentRing.getChildren();
+            @SuppressWarnings("unchecked")
+            List<Element> seq = currentRing.getChildren();
             boolean cuContent = false;
             boolean cuGraph = false;
             boolean cuYes = false;
-            for (int j=0; j<seq.size();j++){
-                String cu = ((Element)seq.get(j)).getAttributeValue("location");
+            for (Element seqElem : seq){
+                String cu = seqElem.getAttributeValue("location");
                 if (cu != null) {
-                    if (cu.compareTo("GC Content") == 0 || cu.compareTo("GC Skew") == 0) {
+                    if ("GC Content".equals(cu) || "GC Skew".equals(cu)) {
                         cuContent = true;
                     } else if (cu.endsWith(".graph")) {
                         cuGraph = true;
@@ -939,9 +949,9 @@ public class Two extends javax.swing.JFrame {
             boolean graph = false;
             boolean yes = false;
             for (int i = 0; i < add.length; i++) {
-                if (add[i].toString().compareTo("GC Content") == 0) {
+                if ("GC Content".equals(add[i].toString())) {
                     content = true;
-                } else if (add[i].toString().compareTo("GC Skew") == 0) {
+                } else if ("GC Skew".equals(add[i].toString())) {
                     skew = true;
                 } else if (add[i].toString().endsWith(".graph")) {
                     graph = true;
@@ -977,17 +987,19 @@ public class Two extends javax.swing.JFrame {
         }    }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
-        Element currentRing = (Element) doop.get(BRIG.POSITION);
-        for (int z = 0; z < doop.size(); z++) {
-            if (((Element) doop.get(z)).getAttributeValue("position").compareTo(Integer.toString(BRIG.POSITION)) == 0) {
-                currentRing = (Element) doop.get(z);
+        @SuppressWarnings("unchecked")
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        Element currentRing = doop.get(BRIG.POSITION);
+        for (Element elem : doop) {
+            if (Integer.toString(BRIG.POSITION).equals(elem.getAttributeValue("position"))) {
+                currentRing = elem;
             }
         }
         int[] del = genomeList.getSelectedIndices();
-        for (int i = 0; i < del.length; i++) {           
-            List temp = currentRing.getChildren("sequence");
-            ((Element)temp.get(del[i])).detach();
+        for (int i = 0; i < del.length; i++) {
+            @SuppressWarnings("unchecked")
+            List<Element> temp = currentRing.getChildren("sequence");
+            temp.get(del[i]).detach();
             for (int j = 0; j < del.length; j++) {
                 if ( j > i) {
                     del[j]--;
@@ -1002,10 +1014,10 @@ public class Two extends javax.swing.JFrame {
         save();
         int sel  = ringu.getSelectedIndex();
         Element newChild = new Element("ring");
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        @SuppressWarnings("unchecked")
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
         // Shift all rings down one, to make room for new ring
-        for (int i = 0; i < doop.size(); i++) {
-            Element ccur = (Element) doop.get(i);
+        for (Element ccur : doop) {
             int nextInt = Integer.parseInt(ccur.getAttributeValue("position"));
             if (nextInt > sel ) {
                 nextInt++;
@@ -1050,7 +1062,7 @@ public class Two extends javax.swing.JFrame {
                     try {
                         BRIG.bundleSession(fc.getSelectedFile().getAbsolutePath());
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        log.error("Failed to bundle session", e);
                     }
                 }
                 };
@@ -1063,7 +1075,7 @@ public class Two extends javax.swing.JFrame {
                             JOptionPane.ERROR_MESSAGE);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Error starting bundle session thread", e);
             }
         }
     }//GEN-LAST:event_bundleActionPerformed
@@ -1109,13 +1121,13 @@ public class Two extends javax.swing.JFrame {
                BRIG.PROFILE.getRootElement().setAttribute("genbankProtein", "true");
                multiFasta = true;
            }
-           List bad = new LinkedList();
+           List<String> bad = new LinkedList<>();
            if (BRIG.PROFILE.getRootElement().getAttribute("genbankProtein") != null) {
                blastType.addItem("blastp");
                blastType.addItem("blastx");
                bad.add("blastn");
                bad.add("tblastn");
-               bad.add("tblastx");      
+               bad.add("tblastx");
            } else {
                blastType.addItem("blastn");
                blastType.addItem("tblastn");
@@ -1124,14 +1136,15 @@ public class Two extends javax.swing.JFrame {
                bad.add("blastx");
            }
            // CHECK IF BLAST SETTINGS FOR EACH RING IS OK.
-           List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
-           List no = new LinkedList();
+           @SuppressWarnings("unchecked")
+           List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+           List<Integer> no = new LinkedList<>();
            for (int i = 0; i < doop.size(); i++) {
-               Element ring = (Element) doop.get(i);
+               Element ring = doop.get(i);
                if (ring.getAttributeValue("blastType") != null) {
                    String type = ring.getAttributeValue("blastType");
-                   for (int j = 0; j < bad.size(); j++) {
-                       if (type.compareTo(bad.get(j).toString()) == 0) {
+                   for (String badType : bad) {
+                       if (type.equals(badType)) {
                           no.add(i);
                        }
                    }
@@ -1142,8 +1155,8 @@ public class Two extends javax.swing.JFrame {
                 oh.setVisible(true);
                 String type = oh.type;
                 oh.dispose();
-                for(int i = 0 ; i<no.size();i++){
-                    Element dor = (Element)doop.get( (Integer)no.get(i)  );
+                for (int idx : no){
+                    Element dor = doop.get(idx);
                     dor.setAttribute("blastType", type);
                 }
            }
@@ -1158,17 +1171,16 @@ public class Two extends javax.swing.JFrame {
             blastType.addItem("tblastx");
         }
     }
+    @SuppressWarnings("unchecked")
     public void FixRingNumber() {
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
         List<Integer> used = new LinkedList<Integer>();
-        for (int i = 0; i < doop.size(); i++) {
-            Element ring = (Element) doop.get(i);
+        for (Element ring : doop) {
             if (ring.getAttributeValue("position") != null) {
                 used.add(Integer.parseInt(ring.getAttributeValue("position")));
             }
         }
-        for (int i = 0; i < doop.size(); i++) {
-            Element ring = (Element) doop.get(i);
+        for (Element ring : doop) {
             if (ring.getAttributeValue("position") == null) {
                 int position = 0;
                 boolean blank = true;
@@ -1184,13 +1196,14 @@ public class Two extends javax.swing.JFrame {
         }
     }
 
-    public void save() {       
+    @SuppressWarnings("unchecked")
+    public void save() {
         Element root = BRIG.PROFILE.getRootElement();
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
-        Element currentRing = (Element) doop.get(BRIG.POSITION);
-        for (int z = 0; z < doop.size(); z++) {
-            if (((Element) doop.get(z)).getAttributeValue("position").compareTo(Integer.toString(BRIG.POSITION)) == 0) {
-                currentRing = (Element) doop.get(z);
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        Element currentRing = doop.get(BRIG.POSITION);
+        for (Element elem : doop) {
+            if (Integer.toString(BRIG.POSITION).equals(elem.getAttributeValue("position"))) {
+                currentRing = elem;
             }
         }
         try {
@@ -1216,7 +1229,7 @@ public class Two extends javax.swing.JFrame {
             Integer.parseInt(Size.getText() );
             currentRing.setAttribute("size", Size.getText() ) ;
         }catch(Exception e) {
-            e.printStackTrace();
+            log.error("Ring size is not a valid integer", e);
         }
         String le = currentRingField.getText();
         le = le.replaceFirst("\\d+:", "");
@@ -1257,11 +1270,12 @@ public class Two extends javax.swing.JFrame {
         labelCheckBox.setEnabled(status);
     }
 
+    @SuppressWarnings("unchecked")
     public void reload() {
-        BRIG.Print("Position: \t" + BRIG.POSITION);
+        log.debug("Position: \t" + BRIG.POSITION);
         Element root = BRIG.PROFILE.getRootElement();
         queryField.setText(root.getAttributeValue("queryFile"));
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
         Element setting = BRIG.PROFILE.getRootElement().getChild("cgview_settings");
         String notch = setting.getAttributeValue("featureThickness");
         Size.setText(notch);
@@ -1275,10 +1289,10 @@ public class Two extends javax.swing.JFrame {
             root.addContent(newChild);
         }
         doop = root.getChildren("ring");
-        Element currentRing = (Element) doop.get(BRIG.POSITION);
-        for (int z = 0; z < doop.size(); z++) {
-            if (((Element) doop.get(z)).getAttributeValue("position").compareTo(Integer.toString(BRIG.POSITION)) == 0) {
-                currentRing = (Element) doop.get(z);
+        Element currentRing = doop.get(BRIG.POSITION);
+        for (Element elem : doop) {
+            if (Integer.toString(BRIG.POSITION).equals(elem.getAttributeValue("position"))) {
+                currentRing = elem;
             }
         }
         if(currentRing.getAttributeValue("size") != null ){
@@ -1314,21 +1328,21 @@ public class Two extends javax.swing.JFrame {
             }
         }
         genomeModel.removeAllElements();
-        List genomes = currentRing.getChildren("sequence");
+        List<Element> genomes = currentRing.getChildren("sequence");
         jButton1.setEnabled(true);
-        for (int k = 0; k < genomes.size(); k++) {
-            String lo = ((Element) genomes.get(k)).getAttributeValue("location");
-            if(lo.compareTo("GC Skew") == 0 ||
-                  lo.compareTo("GC Content") == 0 ){
+        for (Element genomeElem : genomes) {
+            String lo = genomeElem.getAttributeValue("location");
+            if("GC Skew".equals(lo) ||
+                  "GC Content".equals(lo) ){
                 jButton1.setEnabled(false);
 
             }
             genomeModel.addElement(lo);
         }
         genomeList.setModel(genomeModel);
-        List seq = currentRing.getChildren("sequence");
+        List<Element> seq = currentRing.getChildren("sequence");
         if (seq.size() > 0) {
-            String lastFile = ((Element) seq.get(seq.size()-1)).getAttributeValue("location") ;
+            String lastFile = seq.get(seq.size()-1).getAttributeValue("location") ;
             if (lastFile.endsWith(".graph")) {
                 legendCheck.setText("Show red and blue?");
                 graphMax.setVisible(true);
@@ -1343,7 +1357,7 @@ public class Two extends javax.swing.JFrame {
                 graphMax.setVisible(false);
                 graphMaxField.setVisible(false);
             }
-            if (lastFile.compareTo("GC Skew") == 0 || lastFile.compareTo("GC Content") == 0) {
+            if ("GC Skew".equals(lastFile) || "GC Content".equals(lastFile)) {
                 mute(false);
             } else {
                 mute(true);
@@ -1356,14 +1370,14 @@ public class Two extends javax.swing.JFrame {
         }
         poolList.setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         if (currentRing.getAttribute("legend") != null) {
-            if (currentRing.getAttributeValue("legend").compareTo("yes") == 0) {
+            if ("yes".equals(currentRing.getAttributeValue("legend"))) {
                 legendCheck.setSelected(true);
             } else {
                 legendCheck.setSelected(false);
             }
         }
         if (currentRing.getAttribute("labels") != null) {
-            if (currentRing.getAttributeValue("labels").compareTo("yes") == 0) {
+            if ("yes".equals(currentRing.getAttributeValue("labels"))) {
                 labelCheckBox.setSelected(true);
             } else {
                 labelCheckBox.setSelected(false);
@@ -1375,9 +1389,8 @@ public class Two extends javax.swing.JFrame {
             selectedColourBox.setBackground(selected);
         }
         String out = "";
-        List files = currentRing.getChildren("sequence");
-        for (int i = 0; i < files.size(); i++) {
-            Element temp = (Element) files.get(i);
+        List<Element> files = currentRing.getChildren("sequence");
+        for (Element temp : files) {
             out = out + BRIG.FetchFilename(temp.getAttributeValue("location")) + "\n";
         }
 
@@ -1391,12 +1404,12 @@ public class Two extends javax.swing.JFrame {
             interCheck.setSelected(false);
         }*/
         ringModel.removeAllElements();
-        List rings = BRIG.PROFILE.getRootElement().getChildren("ring");
+        List<Element> rings = BRIG.PROFILE.getRootElement().getChildren("ring");
         int pos = 0;
         int stop = 1;
         if (currentRing.getAttributeValue("blastType") != null) {
             for(int g=0; g< blastType.getItemCount(); g++){
-                if(blastType.getItemAt(g).toString().compareTo(currentRing.getAttributeValue("blastType")) == 0 ){
+                if(currentRing.getAttributeValue("blastType").equals(blastType.getItemAt(g).toString()) ){
                     blastType.setSelectedIndex(g);
                 }
             }
@@ -1404,8 +1417,8 @@ public class Two extends javax.swing.JFrame {
         }
         while(stop != 0){
             stop =0;
-            for (int k = 0; k < rings.size(); k++) {
-                currentRing = (Element) rings.get(k);
+            for (Element ringElem : rings) {
+                currentRing = ringElem;
                 if( Integer.parseInt( currentRing.getAttributeValue("position") ) == pos ){
                     ringModel.addElement("Ring " +
                     Integer.toString( Integer.parseInt( currentRing.getAttributeValue("position") ) +1)
@@ -1430,12 +1443,13 @@ public class Two extends javax.swing.JFrame {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void charman(){
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
-        Element currentRing = (Element) doop.get(BRIG.POSITION);
-        for (int z = 0; z < doop.size(); z++) {
-            if (((Element) doop.get(z)).getAttributeValue("position").compareTo(Integer.toString(BRIG.POSITION)) == 0) {
-                currentRing = (Element) doop.get(z);
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        Element currentRing = doop.get(BRIG.POSITION);
+        for (Element elem : doop) {
+            if (Integer.toString(BRIG.POSITION).equals(elem.getAttributeValue("position"))) {
+                currentRing = elem;
             }
         }
         got = ringModel.indexOf("Ring " +
@@ -1522,6 +1536,7 @@ public class Two extends javax.swing.JFrame {
 
 class ReorderListener extends MouseAdapter {
 
+    private static final Logger log = LoggerFactory.getLogger(ReorderListener.class);
     private JList list;
     private int pressIndex = 0;
     private int releaseIndex = 0;
@@ -1555,19 +1570,18 @@ class ReorderListener extends MouseAdapter {
     }
 
 
+    @SuppressWarnings("unchecked")
     private void reorder() {
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
         int fix = BRIG.POSITION ;
         Element move = new Element("blanko");
-        for (int z = 0; z < doop.size(); z++) {
-            Element ccur = (Element) doop.get(z);
+        for (Element ccur : doop) {
             int nextInt = Integer.parseInt(ccur.getAttributeValue("position"));
             if(nextInt == pressIndex ){
                 move = ccur;
             }
         }
-        for (int z = 0; z < doop.size(); z++) {
-            Element ccur = (Element) doop.get(z);
+        for (Element ccur : doop) {
             int nextInt = Integer.parseInt(ccur.getAttributeValue("position"));
             if (pressIndex > releaseIndex) {
                 if (nextInt < pressIndex && nextInt >= releaseIndex) {
@@ -1590,7 +1604,7 @@ class ReorderListener extends MouseAdapter {
             BRIG.POSITION = releaseIndex;
         }
         parent.reload();
-        BRIG.Print("HELP \t"+ BRIG.POSITION);
+        log.debug("HELP \t"+ BRIG.POSITION);
     }
 
 

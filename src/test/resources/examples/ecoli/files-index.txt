@@ -1,0 +1,11 @@
+BRIGExample-50k.fna
+BRIGExample-50k.graph
+EHEC_vir.fna
+E_coli_CFT073-50k.fna
+E_coli_HS-50k.fna
+E_coli_K12MG1655-50k.fna
+E_coli_O157H7Sakai-50k.gbk
+E_coli_UTI89-50k.fna
+Ecoli_O126-50k.fna
+ExampleProfile.xml
+SP-Sites-50k.txt

@@ -10,7 +10,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU General Public License
  *  along with BRIG.  If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -29,12 +29,16 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import org.jdom.Document;
 import org.jdom.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Nabil
  */
 public class CustomXML extends javax.swing.JFrame {
+
+    private static final Logger log = LoggerFactory.getLogger(CustomXML.class);
 
     private DefaultListModel refModel;
     private DefaultListModel ringModel;
@@ -43,6 +47,7 @@ public class CustomXML extends javax.swing.JFrame {
     private int RINGPOS = 0;
     private Element currentRing;
     Two gotthis = null ;
+    @SuppressWarnings("unchecked")
     public CustomXML() {
   refModel = new DefaultListModel();
         ringModel = new DefaultListModel();
@@ -58,11 +63,11 @@ public class CustomXML extends javax.swing.JFrame {
             }
         };
         jList1.addMouseListener(mouseListener);
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
-        currentRing = (Element) doop.get(BRIG.POSITION);
-        for (int z = 0; z < doop.size(); z++) {
-            if (((Element) doop.get(z)).getAttributeValue("position").compareTo(Integer.toString(BRIG.POSITION)) == 0) {
-                currentRing = (Element) doop.get(z);
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        currentRing = doop.get(BRIG.POSITION);
+        for (Element elem : doop) {
+            if (elem.getAttributeValue("position").equals(Integer.toString(BRIG.POSITION))) {
+                currentRing = elem;
             }
         }
         if (BRIG.PROFILE.getRootElement().getAttributeValue("spacer") != null) {
@@ -86,12 +91,13 @@ public class CustomXML extends javax.swing.JFrame {
         try {
             reload();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to reload CustomXML during initialization", e);
         }
 
     }
 
-    
+
+    @SuppressWarnings("unchecked")
     public CustomXML(Two got) {
         refModel = new DefaultListModel();
         ringModel = new DefaultListModel();
@@ -108,11 +114,11 @@ public class CustomXML extends javax.swing.JFrame {
             }
         };
         jList1.addMouseListener(mouseListener);
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
-        currentRing = (Element) doop.get(BRIG.POSITION);
-        for (int z = 0; z < doop.size(); z++) {
-            if (((Element) doop.get(z)).getAttributeValue("position").compareTo(Integer.toString(BRIG.POSITION)) == 0) {
-                currentRing = (Element) doop.get(z);
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        currentRing = doop.get(BRIG.POSITION);
+        for (Element elem : doop) {
+            if (elem.getAttributeValue("position").equals(Integer.toString(BRIG.POSITION))) {
+                currentRing = elem;
             }
         }
         if (BRIG.PROFILE.getRootElement().getAttributeValue("spacer") != null) {
@@ -128,7 +134,7 @@ public class CustomXML extends javax.swing.JFrame {
                     startField.setText("");
                     stopField.setText("");
                     RINGPOS = ringu.locationToIndex(e.getPoint());
-                    
+
                     reload();
                 }
             }
@@ -137,7 +143,7 @@ public class CustomXML extends javax.swing.JFrame {
         try {
             reload();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to reload CustomXML during initialization", e);
         }
 
     }
@@ -502,19 +508,19 @@ public class CustomXML extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        if (inputData.getSelectedItem().toString().compareTo("Single entry") == 0) {
+        if ("Single entry".equals(inputData.getSelectedItem().toString())) {
             try {
                 Integer.parseInt(startField.getText());
                 Integer.parseInt(stopField.getText());
                 Element feature = new Element("feature");
                 if (!startField.getText().isEmpty() && !stopField.getText().isEmpty()) {
                     String colour = colourField.getSelectedItem().toString();
-                    if(colour.compareTo("default") ==0 ){
+                    if("default".equals(colour)){
                         colour = "red";
                     }
                     String dec = decField.getSelectedItem().toString();
                     dec = decField.getSelectedItem().toString();
-                    if(dec.compareTo("default") ==0 ){
+                    if("default".equals(dec)){
                         dec = "arc";
                     }
                     if (!labelField.getText().isEmpty()) {
@@ -539,8 +545,8 @@ public class CustomXML extends javax.swing.JFrame {
                         "ERROR!",
                         JOptionPane.ERROR_MESSAGE);
             }
-        } else if (inputData.getSelectedItem().toString().compareTo("Tab-delimited") == 0) {
-            if (fileLocation.getText().compareTo("") != 0) {
+        } else if ("Tab-delimited".equals(inputData.getSelectedItem().toString())) {
+            if (!fileLocation.getText().isEmpty()) {
                 parseTab(fileLocation.getText());
                 reload();
             } else {
@@ -549,8 +555,8 @@ public class CustomXML extends javax.swing.JFrame {
                         "ERROR!",
                         JOptionPane.ERROR_MESSAGE);
             }
-        } else if (inputData.getSelectedItem().toString().compareTo("Genbank") == 0) {
-            if (fileLocation.getText().compareTo("") != 0) {
+        } else if ("Genbank".equals(inputData.getSelectedItem().toString())) {
+            if (!fileLocation.getText().isEmpty()) {
                 parseXML(AnnoXML.CreateFeatureXML(fileLocation.getText(), false));
                 reload();
             } else {
@@ -559,8 +565,8 @@ public class CustomXML extends javax.swing.JFrame {
                         "ERROR!",
                         JOptionPane.ERROR_MESSAGE);
             }
-        } else if (inputData.getSelectedItem().toString().compareTo("Embl") == 0) {
-            if (fileLocation.getText().compareTo("") != 0) {
+        } else if ("Embl".equals(inputData.getSelectedItem().toString())) {
+            if (!fileLocation.getText().isEmpty()) {
                 parseXML(AnnoXML.CreateFeatureXML(fileLocation.getText(), true));
                 reload();
             } else {
@@ -569,7 +575,7 @@ public class CustomXML extends javax.swing.JFrame {
                         "ERROR!",
                         JOptionPane.ERROR_MESSAGE);
             }
-        } else if (inputData.getSelectedItem().toString().compareTo("Multi-FASTA") == 0) {
+        } else if ("Multi-FASTA".equals(inputData.getSelectedItem().toString())) {
             multiFasta();
             reload();
         }
@@ -599,14 +605,15 @@ public class CustomXML extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    @SuppressWarnings("unchecked")
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         save();
-        List custom = currentRing.getChildren("feature");
+        List<Element> custom = currentRing.getChildren("feature");
         int[] del = jList1.getSelectedIndices();
         for (int i = 0; i < del.length; i++) {
-            System.out.println(del[i]);
-            System.out.println(custom.size());
-            ((Element) custom.get(del[0])).detach();
+            log.debug("Deleting feature at index: {}", del[i]);
+            log.debug("Total custom features: {}", custom.size());
+            custom.get(del[0]).detach();
         }
 
         ELEMENT_INT = 0;
@@ -624,13 +631,13 @@ public class CustomXML extends javax.swing.JFrame {
         reload();
     }//GEN-LAST:event_jButton3ActionPerformed
 
+    @SuppressWarnings("unchecked")
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         save();
         Element newChild = new Element("ring");
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
         int big = 0;
-        for (int i = 0; i < doop.size(); i++) {
-            Element ccur = (Element) doop.get(i);
+        for (Element ccur : doop) {
             int nextInt = Integer.parseInt(ccur.getAttributeValue("position"));
             if (nextInt > big) {
                 big = nextInt;
@@ -667,8 +674,9 @@ public class CustomXML extends javax.swing.JFrame {
         });
     }
 
+    @SuppressWarnings("unchecked")
     public void changeStates() {
-        if (inputData.getSelectedItem().toString().compareTo("Single entry") == 0) {
+        if ("Single entry".equals(inputData.getSelectedItem().toString())) {
             //Single entry, Tab-delimited, Genbank, Embl
          //   startField.setEnabled(true);
         //    stopField.setEnabled(true);
@@ -682,7 +690,7 @@ public class CustomXML extends javax.swing.JFrame {
             fileLocation.setToolTipText("Not required");
             gapsonly.setVisible(false);
             colourField.removeItem("alternating red-blue");
-        } else if (inputData.getSelectedItem().toString().compareTo("Tab-delimited") == 0) {
+        } else if ("Tab-delimited".equals(inputData.getSelectedItem().toString())) {
         //    startField.setEnabled(false);
         //    stopField.setEnabled(false);
             fileLocation.setEnabled(true);
@@ -696,7 +704,7 @@ public class CustomXML extends javax.swing.JFrame {
             jLabel8.setText("Tab-delimited file location:");
             colourField.removeItem("alternating red-blue");
             fileLocation.setToolTipText("Remember, Tab-delimited file columns should be: START, STOP, Label, colour, Decoration");
-        } else if (inputData.getSelectedItem().toString().compareTo("Genbank") == 0) {
+        } else if ("Genbank".equals(inputData.getSelectedItem().toString())) {
         //    startField.setEnabled(false);
        //     stopField.setEnabled(false);
             fileLocation.setEnabled(true);
@@ -710,7 +718,7 @@ public class CustomXML extends javax.swing.JFrame {
             gapsonly.setVisible(false);
             int as = 0;
             for (int k = 0; k < colourField.getItemCount(); k++) {
-                if (colourField.getItemAt(k).toString().compareTo("alternating red-blue") == 0) {
+                if ("alternating red-blue".equals(colourField.getItemAt(k).toString())) {
                     as++;
                 }
             }
@@ -718,7 +726,7 @@ public class CustomXML extends javax.swing.JFrame {
                 colourField.addItem("alternating red-blue");
             }
             fileLocation.setToolTipText("Must be a Genbank file");
-        } else if (inputData.getSelectedItem().toString().compareTo("Embl") == 0) {
+        } else if ("Embl".equals(inputData.getSelectedItem().toString())) {
        //     startField.setEnabled(false);
        //     stopField.setEnabled(false);
             fileLocation.setEnabled(true);
@@ -733,14 +741,14 @@ public class CustomXML extends javax.swing.JFrame {
             int as = 0;
             fileLocation.setToolTipText("Must be an EMBL file");
             for (int k = 0; k < colourField.getItemCount(); k++) {
-                if (colourField.getItemAt(k).toString().compareTo("alternating red-blue") == 0) {
+                if ("alternating red-blue".equals(colourField.getItemAt(k).toString())) {
                     as++;
                 }
             }
             if (as == 0) {
                 colourField.addItem("alternating red-blue");
             }
-        } else if (inputData.getSelectedItem().toString().compareTo("Multi-FASTA") == 0) {
+        } else if ("Multi-FASTA".equals(inputData.getSelectedItem().toString())) {
          //   startField.setEnabled(true);
          //   stopField.setEnabled(true);
             fileLocation.setEnabled(false);
@@ -751,7 +759,7 @@ public class CustomXML extends javax.swing.JFrame {
             if (BRIG.PROFILE.getRootElement().getAttributeValue("spacer") != null) {
                 int as = 0;
                 for( int k=0; k< colourField.getItemCount();k++){
-                    if (colourField.getItemAt(k).toString().compareTo("alternating red-blue") == 0 ){
+                    if ("alternating red-blue".equals(colourField.getItemAt(k).toString())){
                         as++;
                     }
                 }
@@ -769,20 +777,21 @@ public class CustomXML extends javax.swing.JFrame {
             fileLocation.setToolTipText("Not required");
         }
     }
+    @SuppressWarnings("unchecked")
     public void parseXML(Document input) {
-        List features;
-        if (featureName.getText().compareTo("") != 0) {
+        List<Element> features;
+        if (!featureName.getText().isEmpty()) {
             features = input.getRootElement().getChildren(featureName.getText());
         } else {
             features = input.getRootElement().getChildren();
         }
         int logic = 0;
-        if (logicBox.getSelectedItem().toString().compareTo("NOT") == 0) {
+        if ("NOT".equals(logicBox.getSelectedItem().toString())) {
             logic = 1;
         }
         for (int i = 0; i < features.size(); i++) {
-            Element currentElement = (Element) features.get(i);
-            if (textContains.getText().compareTo("") != 0) {
+            Element currentElement = features.get(i);
+            if (!textContains.getText().isEmpty()) {
                 int scan = scanFeature(currentElement, textContains.getText());
                 if (scan == 1 && ((scan ^ logic) == 1)) {
                     anno2xml(currentElement,i );
@@ -796,7 +805,7 @@ public class CustomXML extends javax.swing.JFrame {
 
     public void anno2xml(Element currentElement, int count) {
         Element feature = new Element("feature");
-        if (!labelField.getText().isEmpty() && labelField.getText().compareTo("") != 0) {
+        if (!labelField.getText().isEmpty() && !labelField.getText().isEmpty()) {
             feature.setAttribute("label", labelField.getText());
         } else {
             if (currentElement.getChild("gene") != null) {
@@ -806,7 +815,7 @@ public class CustomXML extends javax.swing.JFrame {
         if (ignore.isSelected()) {
             feature.removeAttribute("label");
         }
-        if (colourField.getSelectedItem().toString().compareTo("default") == 0) {
+        if ("default".equals(colourField.getSelectedItem().toString())) {
             if (currentElement.getChild("colour") != null) {
                 int col = Integer.parseInt(currentElement.getChild("colour").getAttributeValue("value"));
                 col++;
@@ -814,7 +823,7 @@ public class CustomXML extends javax.swing.JFrame {
             } else {
                 feature.setAttribute("colour", "red");
             }
-        } else if (colourField.getSelectedItem().toString().compareTo("alternating red-blue") == 0) {
+        } else if ("alternating red-blue".equals(colourField.getSelectedItem().toString())) {
             if (count % 2 == 1) {
                 feature.setAttribute("colour", "blue");
             } else {
@@ -826,9 +835,9 @@ public class CustomXML extends javax.swing.JFrame {
 
         //default, arc, hidden, counterclockwise-arrow, clockwise-arrow
         String comp = currentElement.getAttributeValue("complement");
-        if (decField.getSelectedItem().toString().compareTo("default") == 0) {
-            if (currentElement.getName().compareTo("CDS") ==0 ) {
-                if (comp.compareTo("true") ==0 ) {
+        if ("default".equals(decField.getSelectedItem().toString())) {
+            if ("CDS".equals(currentElement.getName())) {
+                if ("true".equals(comp)) {
                      feature.setAttribute("decoration", "counterclockwise-arrow");
                 } else {
                     feature.setAttribute("decoration", "clockwise-arrow");
@@ -863,10 +872,11 @@ public class CustomXML extends javax.swing.JFrame {
         return 0;
     }
 
+    @SuppressWarnings("unchecked")
     public void parseTab(String input) {
         try {
             if (BRIG.PROFILE.getRootElement().getAttributeValue("spacer") != null) {
-                
+
             }
             BufferedReader in = new BufferedReader(new FileReader(input));
             String line = "";
@@ -877,7 +887,7 @@ public class CustomXML extends javax.swing.JFrame {
                         line = line.replaceAll("\"", "");
                         line = line.trim();
                         String[] lineArray = line.split("\t");
-                        
+
                         if(lineArray.length >= 2){
                             lineArray[0] = lineArray[0].replaceAll("\\D+", "");
                             lineArray[1] = lineArray[1].replaceAll("\\D+", "");
@@ -886,13 +896,13 @@ public class CustomXML extends javax.swing.JFrame {
                         Element feature = new Element("feature");
                         if (start != 0 && stop != 0) {
                             if (lineArray.length >= 3) {
-                                if (lineArray[2].compareTo("") != 0) {
+                                if (!lineArray[2].isEmpty()) {
                                     feature.setAttribute("label", lineArray[2]);
                                 }
                             }
-                            if (colourField.getSelectedItem().toString().compareTo("default") == 0) {
+                            if ("default".equals(colourField.getSelectedItem().toString())) {
                                 if (lineArray.length >= 4) {
-                                    if (lineArray[3].compareTo("") != 0) {
+                                    if (!lineArray[3].isEmpty()) {
                                         feature.setAttribute("colour", lineArray[3]);
                                     } else {
                                         feature.setAttribute("colour", "green");
@@ -903,9 +913,9 @@ public class CustomXML extends javax.swing.JFrame {
                             } else {
                                 feature.setAttribute("colour", colourField.getSelectedItem().toString());
                             }
-                            if (decField.getSelectedItem().toString().compareTo("default") == 0){
+                            if ("default".equals(decField.getSelectedItem().toString())){
                                 if (lineArray.length >= 5) {
-                                if (lineArray[4].compareTo("") != 0) {
+                                if (!lineArray[4].isEmpty()) {
                                         feature.setAttribute("decoration", lineArray[4]);
                                     } else {
                                         feature.setAttribute("decoration", "arc");
@@ -921,7 +931,7 @@ public class CustomXML extends javax.swing.JFrame {
                             child.setAttribute("stop", lineArray[1]);
                             feature.addContent(child);
                             currentRing.addContent(feature);
-                            
+
                         } else {
                             JOptionPane.showMessageDialog(this,
                                     "Stop/Start fields can not be zero on line " + currentLine, "ERROR!",
@@ -939,25 +949,24 @@ public class CustomXML extends javax.swing.JFrame {
             reload();
             currentLine++;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to parse tab-delimited file: {}", input, e);
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void save() {
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
-        for (int z = 0; z < doop.size(); z++) {
-            if (((Element) doop.get(z)).getAttributeValue("position").compareTo(Integer.toString(RINGPOS)) == 0) {
-                currentRing = (Element) doop.get(z);
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        for (Element elem : doop) {
+            if (elem.getAttributeValue("position").equals(Integer.toString(RINGPOS))) {
+                currentRing = elem;
             }
         }
         if (currentRing.getContentSize() > 0) {
-            List xml = currentRing.getChildren("feature");
+            List<Element> xml = currentRing.getChildren("feature");
             int totalfeatures = 0;
-            for (int i = 0; i < xml.size(); i++) {
-                Element feature = (Element) xml.get(i);
-                List featureRange = ((Element) xml.get(i)).getChildren("featureRange");
-                for (int j = 0; j < featureRange.size(); j++) {
-                    Element current = (Element) featureRange.get(j);
+            for (Element feature : xml) {
+                List<Element> featureRange = feature.getChildren("featureRange");
+                for (Element current : featureRange) {
                     if (ELEMENT_INT == totalfeatures) {
                         feature.setAttribute("colour", colourField.getSelectedItem().toString());
                         feature.setAttribute("decoration", decField.getSelectedItem().toString());
@@ -971,12 +980,13 @@ public class CustomXML extends javax.swing.JFrame {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void reload() {
         changeStates();
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
-        for (int z = 0; z < doop.size(); z++) {
-            if (((Element) doop.get(z)).getAttributeValue("position").compareTo(Integer.toString(RINGPOS)) == 0) {
-                currentRing = (Element) doop.get(z);
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        for (Element elem : doop) {
+            if (elem.getAttributeValue("position").equals(Integer.toString(RINGPOS))) {
+                currentRing = elem;
             }
         }
         jTextField1.setText((Integer.parseInt(currentRing.getAttributeValue("position")) + 1)
@@ -988,13 +998,12 @@ public class CustomXML extends javax.swing.JFrame {
             mess.setVisible(false);
         }
         ringModel.clear();
-        List rings = BRIG.PROFILE.getRootElement().getChildren("ring");
+        List<Element> rings = BRIG.PROFILE.getRootElement().getChildren("ring");
         int pos = 0;
         int stop = 1;
         while (stop != 0) {
             stop = 0;
-            for (int k = 0; k < rings.size(); k++) {
-                Element entRing = (Element) rings.get(k);
+            for (Element entRing : rings) {
                 if (Integer.parseInt(entRing.getAttributeValue("position")) == pos) {
                     ringModel.addElement("Ring "
                             + Integer.toString(Integer.parseInt(entRing.getAttributeValue("position")) + 1)
@@ -1005,13 +1014,11 @@ public class CustomXML extends javax.swing.JFrame {
             }
         }
         if (currentRing.getContentSize() > 0) {
-            List xml = currentRing.getChildren("feature");
+            List<Element> xml = currentRing.getChildren("feature");
             int totalfeatures = 0;
-            for (int i = 0; i < xml.size(); i++) {
-                Element feature = (Element) xml.get(i);
-                List featureRange = ((Element) xml.get(i)).getChildren("featureRange");
-                for (int j = 0; j < featureRange.size(); j++) {
-                    Element current = (Element) featureRange.get(j);                    
+            for (Element feature : xml) {
+                List<Element> featureRange = feature.getChildren("featureRange");
+                for (Element current : featureRange) {
                     if (feature.getAttributeValue("label") != null) {
                         refModel.addElement(current.getAttributeValue("start") + "-" + current.getAttributeValue("stop") + ":" + feature.getAttributeValue("label"));
                     } else {
@@ -1031,6 +1038,7 @@ public class CustomXML extends javax.swing.JFrame {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void multiFasta() {
         try {
             int space = Integer.parseInt(BRIG.PROFILE.getRootElement().getAttributeValue("spacer"));
@@ -1047,13 +1055,13 @@ public class CustomXML extends javax.swing.JFrame {
             int start = 0;
             int stop = 0;
             String colour = "";
-            if (colourField.getSelectedItem().toString().compareTo("default") == 0) {
+            if ("default".equals(colourField.getSelectedItem().toString())) {
                 colour = "red";
             } else {
                 colour = colourField.getSelectedItem().toString();
             }
             String dec = "";
-            if (decField.getSelectedItem().toString().compareTo("default") == 0) {
+            if ("default".equals(decField.getSelectedItem().toString())) {
                 dec = "arc";
             } else {
                 dec =  decField.getSelectedItem().toString();
@@ -1068,7 +1076,7 @@ public class CustomXML extends javax.swing.JFrame {
                             Element feature = new Element("feature");
                             if (start != 0 && stop != 0) {
                                 feature.setAttribute("decoration", dec);
-                                if (colourField.getSelectedItem().toString().compareTo("alternating red-blue") == 0) { 
+                                if ("alternating red-blue".equals(colourField.getSelectedItem().toString())) {
                                     if(lineNum % 2 == 1){
                                         feature.setAttribute("colour", "blue");
                                     }else{
@@ -1098,14 +1106,14 @@ public class CustomXML extends javax.swing.JFrame {
                         stop = Integer.parseInt(line.split(":")[2]);
                         String label = line.split(":")[0];
                         label = label.replaceAll(">", "");
-                        System.out.println(start + " " + stop + " " + label);
+                        log.debug("Multi-FASTA entry: start={} stop={} label={}", start, stop, label);
                         Element feature = new Element("feature");
                         if (start == 0) {
                             start = 1;
                         }
                         if (start != 0 && stop != 0) {
                             feature.setAttribute("decoration", dec);
-                            if (colourField.getSelectedItem().toString().compareTo("alternating red-blue") == 0) {
+                            if ("alternating red-blue".equals(colourField.getSelectedItem().toString())) {
                                 if (lineNum % 2 == 1) {
                                     feature.setAttribute("colour", "blue");
                                 } else {
@@ -1114,7 +1122,7 @@ public class CustomXML extends javax.swing.JFrame {
                             } else {
                                 feature.setAttribute("colour", colour);
                             }
-                            if (labelField.getText().compareTo("") == 0) {
+                            if (labelField.getText().isEmpty()) {
                                 feature.setAttribute("label", label);
                             } else {
                                 feature.setAttribute("label", labelField.getText());
@@ -1137,7 +1145,7 @@ public class CustomXML extends javax.swing.JFrame {
             if (gapsonly.isSelected()) {
                 Element feature = new Element("feature");
                 feature.setAttribute("decoration", dec);
-                if (colourField.getSelectedItem().toString().compareTo("alternating red-blue") == 0) {
+                if ("alternating red-blue".equals(colourField.getSelectedItem().toString())) {
                     if (lineNum % 2 == 1) {
                         feature.setAttribute("colour", "blue");
                     } else {
@@ -1153,7 +1161,7 @@ public class CustomXML extends javax.swing.JFrame {
                 currentRing.addContent(feature);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to process multi-FASTA annotations", e);
         }
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

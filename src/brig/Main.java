@@ -1,37 +1,19 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package brig;
 
-import java.io.*;
-/**
- *
- * @author nabil
- */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Main {
-    static PipedOutputStream OUT = new PipedOutputStream();
- 
+
+    private static final Logger log = LoggerFactory.getLogger(Main.class);
+
     public static void main(String[] args) {
         try {
-            
-            BRIGconsole console = new BRIGconsole(OUT);
-            Print("BRIG console active...");
-            
-            Thread BrigMain = new Thread (new BRIG(OUT), "BRIG-Main");
+            log.info("Starting BRIG...");
+            Thread BrigMain = new Thread(new BRIG(), "BRIG-Main");
             BrigMain.start();
-
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to start BRIG application", e);
         }
-
     }
-    static void Print(String message) throws IOException {
-        String threadName = Thread.currentThread().getName();
-        String out = "[" + threadName + "] " + message + "\n";
-        OUT.write(out.getBytes());
-    }
-
-    
 }

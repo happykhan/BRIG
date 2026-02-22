@@ -1,18 +1,18 @@
 # Visualising whole genome comparisons
 
-In this section we will walk through the basics of generating an image. This walk through will be comparing an *E. coli* genome with five other *E. coli* genomes and mapping the read coverage from the underlying genome assembly onto the same image. For this walk through, users will need BRIG_examples.zip, which is available from the [BRIG GitHub releases](https://github.com/happykhan/BRIG/releases). This contains all the genomes and files needed to follow along with this walk through. Unzip it somewhere easily accessible, like the home directory or desktop.
+In this section we will walkthrough the basics of generating an image. This walkthrough will be comparing an *E. coli* genome with five other *E. coli* genomes and mapping the read coverage from the underlying genome assembly onto the same image. For this walkthrough, users will need BRIG_examples.zip, which is available from the [BRIG GitHub releases](https://github.com/happykhan/BRIG/releases). This contains all the genomes and files needed to follow along with this walkthrough. Unzip it somewhere easily accessible, like the home directory or desktop.
 
 ## About the reference genome
 
-The reference genome used in this walk through is a simulated *E. coli* genome assembly. We took the published *E. coli* O157:H7 Sakai genome (Accession number BA000007) sequence and had assembly reads simulated by METASIM and then assembled these using Newbler version 2.3. The resulting contiguous sequences were ordered using Mauve against the published Sakai genome. This simulated *E. coli* is useful for illustrating some of BRIG's graphing features for assembly read coverage.
+The reference genome used in this walkthrough is a simulated *E. coli* genome assembly. We took the published *E. coli* O157:H7 Sakai genome (Accession number BA000007) sequence and had assembly reads simulated by METASIM and then assembled these using Newbler version 2.3. The resulting contiguous sequences were ordered using Mauve against the published Sakai genome. This simulated *E. coli* is useful for illustrating some of BRIG's graphing features for assembly read coverage.
 
 Enterohemorrhagic *E. coli* are gram-negative, enteric bacterial pathogens. They can cause diarrhea, hemorrhagic colitis, and hemolytic uremic syndrome. This particular genome we are using in this example was based on an *E. coli* O157:H7 isolated from the Sakai, Japan outbreak.
 
 ## Step 1: Load in sequences
 
-The walk through will work out of the unzipped BRIG_examples.zip in the Chapter5_6_8_wholeGenomeExamples folder.
+The walkthrough will work out of the unzipped BRIG_examples.zip in the Chapter5_6_8_wholeGenomeExamples folder.
 
-To keep the final image consistent with the walk through, please open "ExampleProfile.xml" from the Chapter5_6_8_wholeGenomeExamples folder. This file configures BRIG to the same image settings in the walk through.
+To keep the final image consistent with the walkthrough, please open "ExampleProfile.xml" from the Chapter5_6_8_wholeGenomeExamples folder. This file configures BRIG to the same image settings in the walkthrough.
 
 1. First, set BRIGExample.fna as the reference sequence.
 2. Set the Chapter5_6_8_wholeGenomeExamples folder as the query sequence folder.
@@ -57,7 +57,7 @@ The values required for each ring are detailed in the table below. Notice that s
     You can set default threshold values in "BRIG options". See [Setting BRIG Options](configuration.md#setting-brig-options) for more details.
 
 !!! tip "Pro Tip 9"
-    When using a Genbank/EMBL file as a reference, users can choose whether to use the protein or nucleotide sequence.
+    When using a GenBank/EMBL file as a reference, users can choose whether to use the protein or nucleotide sequence.
 
 ## Step 3: Review and submit
 
@@ -69,7 +69,7 @@ The last window allows us to change the BLAST options, the location of the image
 
 ![Step 3: Review and submit](images/screenshot-step3-submit.png)
 
-BRIG will format Genbank files, run BLAST, parse the results and render the image. The final image (Figure 7) shows GC Content and Skew, the Genome coverage, contig boundaries, and the BLAST results against the other *E. coli* genomes. The results for HS and K12 have been collated into a single ring, likewise for UTI89 and CFT073.
+BRIG will format GenBank files, run BLAST, parse the results and render the image. The final image (Figure 7) shows GC Content and Skew, the Genome coverage, contig boundaries, and the BLAST results against the other *E. coli* genomes. The results for HS and K12 have been collated into a single ring, likewise for UTI89 and CFT073.
 
 ![The final BRIG image](images/figure7-final-image.jpg)
 

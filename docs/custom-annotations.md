@@ -6,7 +6,7 @@ BRIG can add features from a tab-delimited file, Multi-FASTA or GenBank/EMBL fil
 
 ### Step 1: Load in sequences
 
-The walk through will work out of the unzipped BRIG_examples.zip folder. The walk through and related figures will use the Chapter5_6_8_wholeGenomeExamples folder.
+The walkthrough will work out of the unzipped BRIG_examples.zip folder. The walkthrough and related figures will use the Chapter5_6_8_wholeGenomeExamples folder.
 
 1. First, set "E_coli_O157H7Sakai.gbk" as the reference sequence from the BRIGEXAMPLE folder.
 2. Set the Chapter5_6_8_wholeGenomeExamples folder as the query sequence folder.
@@ -42,14 +42,14 @@ The values required for each ring are detailed in the table below.
 
 #### Adding annotations from GenBank files
 
-This step adds annotations read from a Genbank/EMBL file. These files can be searched for a specific feature type containing a specific value. This walk through searched the *E. coli* O157:H7 Sakai genome for all CDSs that are annotated as adhesins. From the "Configure Rings" window, click "Add Custom features". These are the steps to load the GenBank features:
+This step adds annotations read from a GenBank/EMBL file. These files can be searched for a specific feature type containing a specific value. This walkthrough searched the *E. coli* O157:H7 Sakai genome for all CDSs that are annotated as adhesins. From the "Configure Rings" window, click "Add Custom features". These are the steps to load the GenBank features:
 
 1. Create a new ring (Ring 4) and double-click Ring 4 in the ring list.
-2. Set "input data" to Genbank.
+2. Set "input data" to GenBank.
 3. Set "colour" to red.
 4. Leave "Draw feature as" default.
 5. Leave label text as a blank.
-6. Set Genbank file location as Chapter5_6_8_wholeGenomeExamples folder / E_coli_O157H7Sakai.gbk
+6. Set GenBank file location as Chapter5_6_8_wholeGenomeExamples folder / E_coli_O157H7Sakai.gbk
 7. Set "Feature name" as CDS
 8. Set "And" as AND
 9. Set "Text contains" as adhesin.

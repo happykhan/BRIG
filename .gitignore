@@ -1,13 +1,15 @@
 errorlog.xml
 site/
-BRIG_examples/
-.vscode 
-.claude 
+BRIG_examples_file
+.vscode
+.claude
+.DS_Store
+dependency-reduced-pom.xml
 
 # Build and dist dirs
 build/
 dist/
-target/ 
+target/
 
 # Compiled class file
 *.class

@@ -1,0 +1,102 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-jar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - run: mvn clean package -q
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BRIG-jar
+          path: |
+            target/BRIG.jar
+            target/brig-cli.jar
+
+  package-macos:
+    needs: build-jar
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: actions/download-artifact@v4
+        with:
+          name: BRIG-jar
+          path: target/
+      - name: Create macOS DMG
+        run: |
+          jpackage \
+            --type dmg \
+            --name BRIG \
+            --app-version ${GITHUB_REF_NAME#v} \
+            --input target \
+            --main-jar BRIG.jar \
+            --main-class brig.Main \
+            --java-options "-Xmx1500M" \
+            --dest dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BRIG-macos
+          path: dist/*.dmg
+
+  package-windows:
+    needs: build-jar
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: actions/download-artifact@v4
+        with:
+          name: BRIG-jar
+          path: target/
+      - name: Create Windows MSI
+        shell: bash
+        run: |
+          jpackage \
+            --type msi \
+            --name BRIG \
+            --app-version ${GITHUB_REF_NAME#v} \
+            --input target \
+            --main-jar BRIG.jar \
+            --main-class brig.Main \
+            --java-options "-Xmx1500M" \
+            --win-menu \
+            --win-shortcut \
+            --dest dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BRIG-windows
+          path: dist/*.msi
+
+  create-release:
+    needs: [build-jar, package-macos, package-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/BRIG-jar/BRIG.jar
+            artifacts/BRIG-jar/brig-cli.jar
+            artifacts/BRIG-macos/*.dmg
+            artifacts/BRIG-windows/*.msi
+          generate_release_notes: true

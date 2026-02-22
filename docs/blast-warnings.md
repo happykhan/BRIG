@@ -7,7 +7,7 @@ BRIG relies on the Basic Local Alignment Search Tool (BLAST) for genome comparis
 !!! warning
     BLAST filters may cause gaps in alignments, which will show up as blank regions in BRIG images.
 
-BLAST filters (BLAST legacy `-F` flag or BLAST+ `-dust`/`-seg` no flag) filter the query sequence for low-complexity sequences by default. This includes sequences that are highly repetitive or contain the same nucleotide for long lengths of the sequences. Low-complexity filtering is generally a good idea, but it may break long matches into several smaller matches.
+BLAST+ filters (`-dust`/`-seg` flags) filter the query sequence for low-complexity sequences by default. This includes sequences that are highly repetitive or contain the same nucleotide for long lengths of the sequences. Low-complexity filtering is generally a good idea, but it may break long matches into several smaller matches.
 
 This is often shown in BRIG images as truncations or gaps in alignments. It is particularly obvious in very small reference sequences where alignments are shown on a gene-by-gene level.
 
@@ -24,4 +24,4 @@ This can create different expected values if BLAST is used with the same referen
 
 Because of this, users might notice different results in BRIG images if they swap the order of the database and reference sequences around in the BLAST, especially if the two sequences are quite different in size. The differences are often due to a few very low-scoring hits.
 
-Users should consider what an appropriate e-value threshold is for the comparisons that they run. Remember, that BLAST runs with an e-value of 10 by default, we recommend that users change this value. Users can set the final threshold (e-value) with the `-e` flag in BLAST legacy or `-evalue` flag in BLAST+.
+Users should consider what an appropriate e-value threshold is for the comparisons that they run. Remember, that BLAST runs with an e-value of 10 by default, we recommend that users change this value. Users can set the e-value threshold with the `-evalue` flag.

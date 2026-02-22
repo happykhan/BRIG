@@ -10,12 +10,16 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author nabil
  */
 public class BRIGrun {
+
+    private static final Logger log = LoggerFactory.getLogger(BRIGrun.class);
 
     public static void main(String args[] ){
     try{
@@ -41,7 +45,7 @@ public class BRIGrun {
         
     
     }catch(Exception e ) {
-         e.printStackTrace(); 
+         log.error("Failed to process files", e);
     }
     }
 }

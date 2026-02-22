@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BRIG blastOptions="" legendPosition="upper-right" queryFile="" outputFolder="">
+  <cgview_settings arrowheadLength="medium" backboneColor="black" backboneRadius="600" backboneThickness="medium" backgroundColor="white" borderColor="black" featureSlotSpacing="medium" featureThickness="30" giveFeaturePositions="false" globalLabel="true" height="2400" isLinear="false" labelFont="SansSerif,plain,30" labelLineLength="medium" labelLineThickness="medium" labelPlacementQuality="best" labelsToKeep="1000" longTickColor="black" minimumFeatureLength="medium" moveInnerLabelsToOuter="true" origin="12" rulerFont="SansSerif,plain,40" rulerFontColor="black" rulerPadding="40" rulerUnits="bases" shortTickColor="black" shortTickThickness="medium" showBorder="true" showShading="true" showWarning="false" tickDensity="0.2333" tickThickness="medium" titleFont="SansSerif,plain,50" titleFontColor="black" useColoredLabelBackgrounds="false" useInnerLabels="true" warningFont="Default,plain,40" warningFontColor="black" width="2400" zeroTickColor="black" />
+  <brig_settings Ring1="102,0,102" Ring2="0,102,102" Ring3="0,102,0" Ring4="0,0,153" Ring5="102,102,0" Ring6="0,153,0" Ring7="204,51,0" Ring8="0,102,102" Ring9="0,153,102" Ring10="204,0,51" defaultUpper="70" defaultLower="50" defaultMinimum="50" genbankFiles="gbk" fastaFiles="fna,faa,fas" emblFiles="embl" blastLocation="C:\PHD\source\BRIG\bin" divider="3" multiplier="3" memory="1500" defaultSpacer="0" />
+  <special value="GC Content" />
+  <special value="GC Skew" />
+</BRIG>
+

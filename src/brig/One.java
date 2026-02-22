@@ -23,6 +23,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Vector;
+import java.util.prefs.Preferences;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -30,6 +31,8 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -37,6 +40,9 @@ import org.jdom.input.SAXBuilder;
  */
 
 public class One extends javax.swing.JFrame {
+
+    private static final Logger log = LoggerFactory.getLogger(One.class);
+    private final Preferences prefs = Preferences.userNodeForPackage(One.class);
 private DefaultListModel refModel;
     /** Creates new form One */
 
@@ -353,28 +359,52 @@ private DefaultListModel refModel;
     }// </editor-fold>//GEN-END:initComponents
 
     private void refBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refBrowseButtonActionPerformed
-        File text = new File(sequenceAddField.getText());
-        JFileChooser fc = new JFileChooser();
-        if (text.isDirectory()) {
-            fc = new JFileChooser(text.getParentFile().getAbsolutePath());
-        }
-        fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        fc.showOpenDialog(this);
-        if (fc.getSelectedFile() != null) {
-            sequenceAddField.setText(fc.getSelectedFile().toString());
+        try {
+            String fieldText = sequenceAddField.getText();
+            JFileChooser fc = new JFileChooser();
+            if (fieldText != null && !fieldText.isEmpty()) {
+                File text = new File(fieldText);
+                if (text.isDirectory() && text.getParentFile() != null) {
+                    fc = new JFileChooser(text.getParentFile().getAbsolutePath());
+                }
+            } else {
+                File startDir = getStartDir();
+                if (startDir != null) {
+                    fc = new JFileChooser(startDir.getAbsolutePath());
+                }
+            }
+            fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+            int result = fc.showOpenDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION && fc.getSelectedFile() != null) {
+                sequenceAddField.setText(fc.getSelectedFile().toString());
+            }
+        } catch (Exception e) {
+            log.error("Error in ref browse button", e);
         }
     }//GEN-LAST:event_refBrowseButtonActionPerformed
 
     private void outputBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_outputBrowseButtonActionPerformed
-        File text = new File(outputFolderField.getText());
-        JFileChooser fc = new JFileChooser();
-        if (text.isDirectory()) {
-            fc = new JFileChooser(text.getParentFile().getAbsolutePath());
-        }
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fc.showOpenDialog(this);
-        if (fc.getSelectedFile() != null) {
-            outputFolderField.setText(fc.getSelectedFile().toString());
+        try {
+            String fieldText = outputFolderField.getText();
+            JFileChooser fc = new JFileChooser();
+            if (fieldText != null && !fieldText.isEmpty()) {
+                File text = new File(fieldText);
+                if (text.isDirectory() && text.getParentFile() != null) {
+                    fc = new JFileChooser(text.getParentFile().getAbsolutePath());
+                }
+            } else {
+                File refDir = getRefDir();
+                if (refDir != null) {
+                    fc = new JFileChooser(refDir.getAbsolutePath());
+                }
+            }
+            fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            int result = fc.showOpenDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION && fc.getSelectedFile() != null) {
+                outputFolderField.setText(fc.getSelectedFile().toString());
+            }
+        } catch (Exception e) {
+            log.error("Error in output browse button", e);
         }
     }//GEN-LAST:event_outputBrowseButtonActionPerformed
 
@@ -385,7 +415,7 @@ private DefaultListModel refModel;
         String blastOpt = BRIG.BlastOption( blastOptionField.getText() );
         if (blastOpt  == null ) {
                 String query = BRIG.PROFILE.getRootElement().getAttributeValue("queryFile");
-                if (query.compareTo("") != 0) {
+                if (!query.isEmpty()) {
                     try {
                         String valid  = BRIG.ValidateSession();
                         if(valid == null ){
@@ -417,7 +447,7 @@ private DefaultListModel refModel;
                                 "Could not read reference file",
                                 "ERROR!",
                                 JOptionPane.ERROR_MESSAGE);
-                        e.printStackTrace();
+                        log.error("Failed to read reference file", e);
                     }
                 } else {
                     JOptionPane.showMessageDialog(this,
@@ -466,7 +496,7 @@ private DefaultListModel refModel;
                 }
             }
             //if so & add = file, check if file exists, add to dir,
-            Vector fil = SearchDir(dir.getAbsolutePath());
+            Vector<String> fil = SearchDir(dir.getAbsolutePath());
             List<Element> exFiles = child.getChildren("refFile");
             if (add.isFile()) {
                 if (exist) {
@@ -543,20 +573,31 @@ private DefaultListModel refModel;
     }//GEN-LAST:event_refAddButtonActionPerformed
 
     private void queryBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_queryBrowseButtonActionPerformed
-        File text = new File (queryField.getText());
-        JFileChooser fc = new JFileChooser();
-        if(text.exists() ){
-        if (text.getParentFile().isDirectory()) {
-            fc = new JFileChooser(text.getParent());
+        try {
+            String fieldText = queryField.getText();
+            JFileChooser fc = new JFileChooser();
+            if (fieldText != null && !fieldText.isEmpty()) {
+                File text = new File(fieldText);
+                if (text.exists() && text.getParentFile() != null && text.getParentFile().isDirectory()) {
+                    fc = new JFileChooser(text.getParent());
+                }
+            }
+            int result = fc.showOpenDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION && fc.getSelectedFile() != null) {
+                BRIG.PROFILE.getRootElement().setAttribute("queryFile", fc.getSelectedFile().toString());
+                File parent = fc.getSelectedFile().getParentFile();
+                if (parent != null) {
+                    prefs.put("lastDir", parent.getAbsolutePath());
+                    String outputText = outputFolderField.getText();
+                    if (outputText == null || outputText.isEmpty()) {
+                        outputFolderField.setText(parent.getAbsolutePath());
+                    }
+                }
+                reload();
+            }
+        } catch (Exception e) {
+            log.error("Error in query browse button", e);
         }
-        }
-        fc.showOpenDialog(this);
-
-        if (fc.getSelectedFile() != null) {
-            BRIG.PROFILE.getRootElement().setAttribute("queryFile", fc.getSelectedFile().toString());
-
-        }
-        reload();
     }//GEN-LAST:event_queryBrowseButtonActionPerformed
 
     private void QuitMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_QuitMenuActionPerformed
@@ -580,7 +621,7 @@ private DefaultListModel refModel;
                             JOptionPane.INFORMATION_MESSAGE);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Failed to save XML file", e);
             }
         }
     }//GEN-LAST:event_SaveMenuActionPerformed
@@ -639,17 +680,17 @@ private DefaultListModel refModel;
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         SAXBuilder builder = new SAXBuilder();
         try {
-            BRIG.PROFILE = builder.build("default-BRIG.xml");
+            BRIG.PROFILE = builder.build(BRIG.PROFILE_LOCATION);
             //Open one page.
             reload();
         } catch (JDOMException e) {
             JOptionPane.showMessageDialog(this,
-                    "default-BRIG.xml is corrupt. Please check:\n" + e.getMessage(),
+                    BRIG.PROFILE_LOCATION + " is corrupt. Please check:\n" + e.getMessage(),
                     "ERROR!",
                     JOptionPane.ERROR_MESSAGE);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this,
-                    "Could not read default-BRIG.xml because:\n" + e.getMessage(),
+                    "Could not read " + BRIG.PROFILE_LOCATION + " because:\n" + e.getMessage(),
                     "ERROR!",
                     JOptionPane.ERROR_MESSAGE);
         }
@@ -672,7 +713,7 @@ private DefaultListModel refModel;
                     JOptionPane.ERROR_MESSAGE);
         }
         }catch(Exception e ){
-            e.printStackTrace();
+            log.error("Failed to launch BLAST graph module", e);
             JOptionPane.showMessageDialog(this,
                     "Could not run BLAST, please check it is installed and BRIG's BLAST location is correct",
                     "ERROR!",
@@ -686,20 +727,23 @@ private DefaultListModel refModel;
             String current = rem[k].toString();
             if (current.contains("Directory: ")) {
                 String get = current.replaceAll("Directory: ", "");
-                List doop = BRIG.PROFILE.getRootElement().getChildren("refDir");
+                @SuppressWarnings("unchecked")
+                List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("refDir");
                 for (int z = 0; z < doop.size(); z++) {
-                    Element cur = ((Element) doop.get(z));
+                    Element cur = doop.get(z);
                     if (cur.getAttributeValue("location").compareTo(get) == 0) {
                         BRIG.PROFILE.getRootElement().removeContent(BRIG.PROFILE.getRootElement().indexOf(cur));
                     }
                 }
             } else {
-                List doop = BRIG.PROFILE.getRootElement().getChildren("refDir");
+                @SuppressWarnings("unchecked")
+                List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("refDir");
                 for (int i = 0; i < doop.size(); i++) {
-                    Element refDir = (Element) doop.get(i);
-                    List refFiles = refDir.getChildren("refFile");
+                    Element refDir = doop.get(i);
+                    @SuppressWarnings("unchecked")
+                    List<Element> refFiles = refDir.getChildren("refFile");
                     for(int z=0;z<refFiles.size();z++){
-                        if( ((Element)refFiles.get(z)).getAttributeValue("location").compareTo(current) == 0){
+                        if( refFiles.get(z).getAttributeValue("location").compareTo(current) == 0){
                             refDir.removeContent(z);
                         }
                     }
@@ -732,7 +776,7 @@ private DefaultListModel refModel;
                             JOptionPane.INFORMATION_MESSAGE);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Failed to save profile XML", e);
             }
         }
     }//GEN-LAST:event_profileSaveActionPerformed
@@ -753,7 +797,7 @@ private DefaultListModel refModel;
                     try {
                         BRIG.bundleSession(fc.getSelectedFile().getAbsolutePath());
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        log.error("Failed to bundle session", e);
                     }
                 }
                 };
@@ -766,7 +810,7 @@ private DefaultListModel refModel;
                             JOptionPane.ERROR_MESSAGE);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Error starting bundle session thread", e);
             }
         }
     }//GEN-LAST:event_BundleActionPerformed
@@ -778,7 +822,7 @@ private DefaultListModel refModel;
     /**
     * @param args the command line arguments
     */
-    public static Vector SearchDir(String directory){
+    public static Vector<String> SearchDir(String directory){
         File dir = new File(directory);
         FileFilter fileFilter = new FileFilter() {
             public boolean accept(File file) {
@@ -786,7 +830,7 @@ private DefaultListModel refModel;
             }
         };
         File[] files = dir.listFiles(fileFilter);
-        Vector out = new Vector();
+        Vector<String> out = new Vector<>();
         String genbank = "gbk";
         String fasta = "fna,faa,fas";
         String embl = "embl";
@@ -803,7 +847,7 @@ private DefaultListModel refModel;
             }
         }
         String validfiles = genbank +","+ fasta + ","+embl +",.graph";
-        BRIG.Print(validfiles);
+        log.debug(validfiles);
         String[] commaArray  = validfiles.split(",");
         for (int i = 0; i < files.length; i++) {
             String filename = files[i].getName();
@@ -823,10 +867,11 @@ private DefaultListModel refModel;
 
     public void ringspoop(String file ) {
         Element newChild = new Element("ring");
-        List doop = BRIG.PROFILE.getRootElement().getChildren("ring");
+        @SuppressWarnings("unchecked")
+        List<Element> doop = BRIG.PROFILE.getRootElement().getChildren("ring");
         // Shift all rings down one, to make room for new ring
         for (int i = 0; i < doop.size(); i++) {
-            Element ccur = (Element) doop.get(i);
+            Element ccur = doop.get(i);
             int nextInt = Integer.parseInt(ccur.getAttributeValue("position"));
             if (nextInt >= (BRIG.POSITION + 1)) {
                 nextInt++;
@@ -839,7 +884,7 @@ private DefaultListModel refModel;
         Color newcol = BRIG.FetchColor(BRIG.POSITION + 1);
         String col = newcol.getRed() + "," + newcol.getGreen() + "," + newcol.getBlue();
         newChild.setAttribute("colour", col);
-        BRIG.Print(file);
+        log.debug(file);
         if( file.contains(".")){
         newChild.setAttribute("name", new File(file).getName().split("\\.")[0]);
         }else{
@@ -857,10 +902,36 @@ private DefaultListModel refModel;
         child.setAttribute("location", file);
         newChild.addContent(child);
         BRIG.PROFILE.getRootElement().addContent(newChild);
-        BRIG.Print(Integer.toString( BRIG.POSITION) );
+        log.debug(Integer.toString( BRIG.POSITION) );
         BRIG.POSITION++;
     }
         
+    private File getRefDir() {
+        String queryFile = BRIG.PROFILE.getRootElement().getAttributeValue("queryFile");
+        if (queryFile != null && !queryFile.isEmpty()) {
+            File parent = new File(queryFile).getParentFile();
+            if (parent != null && parent.isDirectory()) {
+                return parent;
+            }
+        }
+        String lastDir = prefs.get("lastDir", null);
+        if (lastDir != null) {
+            File dir = new File(lastDir);
+            if (dir.isDirectory()) {
+                return dir;
+            }
+        }
+        return null;
+    }
+
+    private File getStartDir() {
+        File refDir = getRefDir();
+        if (refDir != null && refDir.getParentFile() != null && refDir.getParentFile().isDirectory()) {
+            return refDir.getParentFile();
+        }
+        return refDir;
+    }
+
     public void save(){
         BRIG.PROFILE.getRootElement().setAttribute("queryFile" , queryField.getText() );
         BRIG.PROFILE.getRootElement().setAttribute("blastOptions" , blastOptionField.getText() );
@@ -873,13 +944,15 @@ private DefaultListModel refModel;
         outputFolderField.setText(BRIG.PROFILE.getRootElement().getAttributeValue("outputFolder"));
         String out = "";
         List<Element> oldRefs = BRIG.PROFILE.getRootElement().getChildren("refDir");
-        List special = BRIG.PROFILE.getRootElement().getChildren("refDir");
+        @SuppressWarnings("unchecked")
+        List<Element> special = BRIG.PROFILE.getRootElement().getChildren("refDir");
         refModel.removeAllElements();
         for (int k = 0; k < special.size(); k++) {
-            refModel.addElement("Directory: " +((Element)special.get(k)).getAttributeValue("location"));
-            List sp = ((Element)special.get(k)).getChildren("refFile");
+            refModel.addElement("Directory: " + special.get(k).getAttributeValue("location"));
+            @SuppressWarnings("unchecked")
+            List<Element> sp = special.get(k).getChildren("refFile");
             for (int z = 0; z < sp.size(); z++) {
-               refModel.addElement(((Element)sp.get(z)).getAttributeValue("location"));
+               refModel.addElement(sp.get(z).getAttributeValue("location"));
             }
         }
         for (int i = 0; i < oldRefs.size(); i++) {

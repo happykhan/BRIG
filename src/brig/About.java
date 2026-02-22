@@ -16,8 +16,13 @@
 
 package brig;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.awt.Cursor;
+import java.awt.Desktop;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.net.URI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -25,24 +30,12 @@ import java.io.FileReader;
  */
 public class About extends javax.swing.JFrame {
 
+    private static final Logger log = LoggerFactory.getLogger(About.class);
+
     /** Creates new form About */
     public About() {
         initComponents();
         versionLabel.setText(BRIG.header);
-        try{
-        BufferedReader first = new BufferedReader(new FileReader("README.txt"));
-        String line = "";
-        String out ="";
-        while ((line = first.readLine()) != null) {
-            if (!line.startsWith("#")) {
-                out += line + "\n";
-            }
-        }
-        jTextArea1.setText(out);
-        first.close();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
     }
 
     /** This method is called from within the constructor to
@@ -57,6 +50,8 @@ public class About extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         versionLabel = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
+        issuesLink = new javax.swing.JLabel();
+        contactLabel = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
 
@@ -72,12 +67,39 @@ public class About extends javax.swing.JFrame {
 
         versionLabel.setText("Blast Ring Image Generator (BRIG) Version 0.81");
 
-        jLabel2.setText("Copyright Nabil Alikhan. 2010-2011.");
+        jLabel2.setText("Copyright Nabil Alikhan. 2010-2025.");
+
+        issuesLink.setText("<html><a href=''>Report issues on GitHub</a></html>");
+        issuesLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        issuesLink.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    Desktop.getDesktop().browse(new URI("https://github.com/happykhan/BRIG/issues"));
+                } catch (Exception ex) {
+                    log.error("Failed to open browser", ex);
+                }
+            }
+        });
+
+        contactLabel.setText("<html>Contact: <a href=''>nabil@happykhan.com</a></html>");
+        contactLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        contactLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    Desktop.getDesktop().mail(new URI("mailto:nabil@happykhan.com"));
+                } catch (Exception ex) {
+                    log.error("Failed to open mail client", ex);
+                }
+            }
+        });
 
         jTextArea1.setColumns(20);
         jTextArea1.setLineWrap(true);
         jTextArea1.setRows(5);
-        jTextArea1.setText("This java application can produce CGView rendered circular genome images \nbased on BLAST output.\n\nBRIG supports:\n*      Genbank/EMBL\n*      FASTA nucleotide; single entry or Multi-FASTA\n*      FASTA protein; single entry of Multi-FASTA\n\nCHANGE-LOG\nVersion 0.80\n*       Now supports multi-fasta as reference, including protein files (BRIG will ask if you                want spacers between Multi-fasta entries)\n*       BRIG asks if genbank reference is protein or nucleotide.\n*       BRIG doesn't let you do things like run BLASTP on genbank-nucleotide reference.\n*       Brig checks for existing BLAST results exist before running blast. (you can override \n           with Re-DO blast check.\n*       Fixed custom-annotation colour error\n*       Ability to change output image filename\n*       Fixed legend not showing colour when thresholds are off\n*       You can set minimum % identity in BRIG options (cannot be greater than other\n         threshold values through)\n*       You can set a default set of colours in BRIG options\n*       Renamed “Reference sequence” labels\n*       Made it possible to change the order of rings\n*       Added ability to save a \"PROFILE\" (brig configurations but no data)\n*       Fix custom annotation errors/interface.\n*       Add ability to annotate spacers from multi-fasta \n*       Handle Filenames with spacers.\n*       Fixed minor interface bugs");
+        jTextArea1.setEditable(false);
+        jTextArea1.setText("BRIG (BLAST Ring Image Generator) produces CGView-rendered circular\ngenome comparison images based on BLAST output.\n\nBRIG supports:\n*  Genbank/EMBL\n*  FASTA nucleotide; single entry or Multi-FASTA\n*  FASTA protein; single entry or Multi-FASTA\n\nBRIG is free software distributed under the GNU General Public License v3.\n\nFor documentation, source code, and release notes visit:\nhttps://github.com/happykhan/BRIG");
         jScrollPane1.setViewportView(jTextArea1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -93,7 +115,9 @@ public class About extends javax.swing.JFrame {
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addComponent(jLabel2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 302, Short.MAX_VALUE)
-                                .addComponent(jButton1))))
+                                .addComponent(jButton1))
+                            .addComponent(issuesLink)
+                            .addComponent(contactLabel)))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 568, Short.MAX_VALUE)))
@@ -109,7 +133,11 @@ public class About extends javax.swing.JFrame {
                     .addComponent(jLabel2)
                     .addComponent(jButton1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 479, Short.MAX_VALUE)
+                .addComponent(issuesLink)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(contactLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 420, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -134,6 +162,8 @@ public class About extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel issuesLink;
+    private javax.swing.JLabel contactLabel;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JLabel versionLabel;

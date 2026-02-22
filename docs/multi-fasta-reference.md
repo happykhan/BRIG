@@ -2,9 +2,9 @@
 
 ## Step 1: Load in sequences
 
-This section is a walk through of how to use BRIG to generate an image using a list of genes in Multi-FASTA format as a reference. The multi-FASTA file in this example is a number of virulence genes from enterohemorrhagic and uropathogenic *E. coli*, which includes EHEC polar fimbriae (*ecpA* to *ecpR*), EHEC Locus of Enterocyte Effacement (*espF* to *espG*) and the UPEC F1C Fimbriae (*focA* to *focI*), which will be compared against the whole genome sequences of *E. coli* strains O157:H7 Sakai, K12 MG1655, O126:H7 and CFT073. Start a new session in BRIG and load in the files from the Chapter5_6_8_wholeGenomeExamples folder in the unzipped BRIG-Example folder:
+This section is a walkthrough of how to use BRIG to generate an image using a list of genes in Multi-FASTA format as a reference. The multi-FASTA file in this example is a number of virulence genes from enterohemorrhagic and uropathogenic *E. coli*, which includes EHEC polar fimbriae (*ecpA* to *ecpR*), EHEC Locus of Enterocyte Effacement (*espF* to *espG*) and the UPEC F1C Fimbriae (*focA* to *focI*), which will be compared against the whole genome sequences of *E. coli* strains O157:H7 Sakai, K12 MG1655, O126:H7 and CFT073. Start a new session in BRIG and load in the files from the Chapter5_6_8_wholeGenomeExamples folder in the unzipped BRIG-Example folder:
 
-1. Set the reference sequence as "Ecoli_vir.fna". Users can use the browse button to traverse the file system.
+1. Set the reference sequence as "EHEC_vir.fna". Users can use the browse button to traverse the file system.
 2. Set the Chapter5_6_8_wholeGenomeExamples folder as the query sequence folder.
 3. Press "add to data pool", this should load several items into the pool list.
 4. Set the output folder as unzipped BRIG-Example folder.
@@ -70,7 +70,7 @@ The results should be similar to Figure 10 in the left hand pane. Close the wind
 *Figure 10: Custom annotation window - adding spacers*
 
 !!! tip "Pro Tip 12"
-    A spacer value can be set when using protein sequences from a Genbank/EMBL file.
+    A spacer value can be set when using protein sequences from a GenBank/EMBL file.
 
 ## Step 3: Configure image settings and submit
 
@@ -90,7 +90,7 @@ The output image should be something like Figure 11. The alternating red-blue op
 
 ![Multi-FASTA output image](images/figure11-multifasta-output.png)
 
-*Figure 11: Output image from Multi-FASTA walkthrough. This was generated using BLAST+, BLAST legacy will produce slightly different results.*
+*Figure 11: Output image from Multi-FASTA walkthrough.*
 
 !!! tip "Pro Tip 13"
     You can use protein sequences as a multi-FASTA reference and use blastx to improve alignment accuracy for divergent sequences.

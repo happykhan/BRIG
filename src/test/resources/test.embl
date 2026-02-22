@@ -1,0 +1,9 @@
+ID   TEST_SEQ; SV 1; linear; genomic DNA; STD; UNK; 23 BP.
+AC   TEST001;
+DE   Test sequence for BRIG characterization tests.
+FH   Key             Location/Qualifiers
+FT   source          1..23
+FT                   /organism="Test"
+SQ   Sequence 23 BP;
+     atgcatgcat gcnnnatgca tgc                                               23
+//

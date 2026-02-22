@@ -6,7 +6,7 @@ BRIG supports .ace files (produced by Newbler, 454/Roche's proprietary assembler
 
 - **Contig mapping**: BRIG will use BLAST to try and map contigs from an .ace or Multi-FASTA file onto a reference genome and produce a .graph file that can show frequency of BLAST hits and the best BLAST hit position of contigs. It will then produce a .graph file of the frequency of BLAST hits and the best BLAST hit position of contigs and another .graph file, with the suffix "rep.graph" showing all the other BLAST hits.
 
-- **Coverage graph**: BRIG requires an .ace or .sam file and an output location. BRIG will calculate coverage values over a user-defined window and produce a .graph file in the output folder. This will create a tab-delimited .graph file, which can be loaded into back BRIG.
+- **Coverage graph**: BRIG requires an .ace or .sam file and an output location. BRIG will calculate coverage values over a user-defined window and produce a .graph file in the output folder. This will create a tab-delimited .graph file, which can be loaded back into BRIG.
 
 - **Convert graph**: A draft genome is usually modified post assembly; adding spacers, reordering contigs, etc. These changes are often not reflected in the original .ace files BRIG uses to generate coverage graphs. BRIG can use BLAST to align the original assembly output with the newer sequence and map the coverage information to the new sequence. BRIG requires:
     - Original 454AllContigs.fna produced by Newbler.
@@ -19,7 +19,7 @@ To create work with graph files: **Main window > Modules > Create graph files**
 
 ### Using graph files in BRIG images
 
-.graph files should be visible when users load a directory into the query sequence pool. Graphs can be treated like any other sequence file in BRIG; the example from Figure 7.1 shows a graph file loaded into the first ring of a particular BRIG session.
+.graph files should be visible when users load a directory into the query sequence pool. Graphs can be treated like any other sequence file in BRIG; the example in the screenshot below shows a graph file loaded into the first ring of a particular BRIG session.
 
 !!! tip "Pro Tip 14"
     Graph files cannot be shown on same ring as sequence files (protein or nucleotide).
@@ -79,16 +79,16 @@ Click next to move to the next window to configure the rings and add in annotati
 Click "Add Custom features".
 
 1. Double-click Ring 4.
-2. Set Input data to "Genbank".
+2. Set Input data to "GenBank".
 3. Set colour to "black".
 4. Set Draw feature as "default".
-5. Set Genbank file location to the location of "S.aureus.Mu50-plasmid-AP003367.gbk".
+5. Set GenBank file location to the location of "S.aureus.Mu50-plasmid-AP003367.gbk".
 6. Set Feature as "CDS"
 7. Click add.
 
 ![Custom features for SAM walkthrough](images/screenshot-sam-custom.png)
 
-This will load all the coding sequences from the Genbank file. These annotations will be drawn as arrows, indicating orientation. Close this window and click next on the second window.
+This will load all the coding sequences from the GenBank file. These annotations will be drawn as arrows, indicating orientation. Close this window and click next on the second window.
 
 1. Set title as "S. aureus Mu50 plasmid".
 2. Click Submit.
@@ -99,9 +99,9 @@ This will generate the final image, it should look like Figure 12.
 
 *Figure 12: S. aureus Mu 50 plasmid, showing read mapping from simulated 454 reads, CDSs, and genome comparisons to other S. aureus plasmids, pSK57 & SAP014A. Alignments were performed with BLAST+.*
 
-## Walk through for visualising ace file assembly coverage
+## Walkthrough for visualising ace file assembly coverage
 
-This section will give a worked example of producing a BRIG image showing assembly coverage read from an ace file. The final image will look like Figure 13. This walk through requires BRIG_examples.zip from the [BRIG GitHub releases](https://github.com/happykhan/BRIG/releases). Unzip this somewhere convenient.
+This section will give a worked example of producing a BRIG image showing assembly coverage read from an ace file. The final image will look like Figure 13. This walkthrough requires BRIG_examples.zip from the [BRIG GitHub releases](https://github.com/happykhan/BRIG/releases). Unzip this somewhere convenient.
 
 The general procedure is to first generate the graph files from the ace file, convert the coverage information to reference sequence if necessary, add additional files to data pool, edit rings and annotation, then render the image.
 
@@ -172,7 +172,7 @@ Click next to move to the next window and configure the rings.
 The rings are now set up with the correct colour, data and labels. The next step is to mark the CDS on Ring 4 as "custom features". Click "Add Custom features" to open a new window.
 
 1. Double-click on Ring 4.
-2. Set Input data to "Genbank".
+2. Set Input data to "GenBank".
 3. Set colour to "black".
 4. Set Draw feature as "default".
 5. Set GenBank file location to "S.aureus.Mu50-plasmid-AP003367.gbk" in the BRIGEXAMPLE2-ace folder.

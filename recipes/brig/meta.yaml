@@ -1,0 +1,31 @@
+{% set version = "1.0.0" %}
+
+package:
+  name: brig
+  version: "{{ version }}"
+
+source:
+  url: https://github.com/happykhan/BRIG/releases/download/v{{ version }}/BRIG.jar
+  sha256: PLACEHOLDER_FILL_AFTER_RELEASE
+
+build:
+  number: 0
+  noarch: generic
+
+requirements:
+  run:
+    - openjdk >=17
+    - blast
+
+test:
+  commands:
+    - java -jar $PREFIX/share/brig-{{ version }}/BRIG.jar --help
+
+about:
+  home: https://github.com/happykhan/BRIG
+  license: GPL-3.0-only
+  license_file: LICENSE
+  summary: "BLAST Ring Image Generator - circular genome comparison images"
+  description: |
+    BRIG is a cross-platform application for generating circular comparison
+    images of multiple genomes using BLAST and CGView.

@@ -17,6 +17,7 @@
 package brig;
 
 import java.io.*;
+import java.io.StringWriter;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,11 +25,15 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  *
  * @author nabil
  */
 public class AnnoXML {
+
+    private static final Logger log = LoggerFactory.getLogger(AnnoXML.class);
 
     /**
      * @param args the command line arguments
@@ -46,7 +51,7 @@ public class AnnoXML {
             Element noteElement = new Element("blanko");
             String helper = "";
             int on = 0;
-            Vector notes = new Vector();
+            Vector<Element> notes = new Vector<>();
             Pattern header = Pattern.compile("^\\s{5}(\\S+)\\s+\\D+(\\d+)..(\\d+)");
             Pattern feature = Pattern.compile("^FEATURES");
             Pattern origin = Pattern.compile("^ORIGIN");
@@ -67,15 +72,15 @@ public class AnnoXML {
                 if (on == 1) {
                     Matcher headerMatch = header.matcher(line);
                     if (headerMatch.find()) {
-                        if (child.getName().compareTo("blanko") != 0) {
+                        if (!"blanko".equals(child.getName())) {
                             noteElement.setAttribute("value", helper);
                             notes.add(noteElement);
                             noteElement = new Element("blanko");
                             for (int i = 0; i < notes.size(); i++) {
-                                child.addContent((Element) notes.get(i));
+                                child.addContent(notes.get(i));
                             }
                             features.getRootElement().addContent(child);
-                            notes = new Vector();
+                            notes = new Vector<>();
                         }
                         child = new Element(headerMatch.group(1));
                         if (line.contains("complement")) {
@@ -89,7 +94,7 @@ public class AnnoXML {
                         Matcher noteMatch = note.matcher(line);
                         if (noteMatch.find()) {
                             noteElement.setAttribute("value", helper);
-                            if (noteElement.getName().compareTo("blanko") != 0) {
+                            if (!"blanko".equals(noteElement.getName())) {
                                 notes.add(noteElement);
                             }
                             noteElement = new Element(noteMatch.group(1));
@@ -98,7 +103,7 @@ public class AnnoXML {
                             helper = helper.replaceAll("=", " ");
                         } else {
                             String space = " ";
-                            if (noteElement.getName().compareTo("translation") == 0) {
+                            if ("translation".equals(noteElement.getName())) {
                                 space = "";
                             }
                             if (embl) {
@@ -120,7 +125,7 @@ public class AnnoXML {
             }
             features.getRootElement().addContent(child);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to create feature XML from {}", inputFile, e);
         }
         return features;
     }
@@ -129,9 +134,11 @@ public class AnnoXML {
         try {
             XMLOutputter serializer = new XMLOutputter();
             serializer.setFormat(Format.getPrettyFormat()) ;
-            serializer.output(PROFILE, System.out);
+            StringWriter sw = new StringWriter();
+            serializer.output(PROFILE, sw);
+            log.info("XML content:\n{}", sw);
         } catch (IOException e) {
-            System.err.println(e);
+            log.error("Failed to print XML", e);
         }
     }
     public static int dumpXMLfile(Document PROFILE, String output){
@@ -145,7 +152,7 @@ public class AnnoXML {
             return 0;
             
         } catch (IOException e) {
-            System.err.println(e);
+            log.error("Failed to dump XML to file: {}", output, e);
             return 1;
         }
 
@@ -169,7 +176,7 @@ public class AnnoXML {
             System.out.println("start");
             String feat = "";
             String prevFeat = "";
-            ArrayList<ArrayList> summary = new ArrayList();
+            ArrayList<ArrayList<String>> summary = new ArrayList<>();
             ArrayList<String> entry = new ArrayList();
             BufferedReader second = new BufferedReader(new FileReader(inputWords));
             while ((line = first.readLine()) != null) {
@@ -237,7 +244,7 @@ public class AnnoXML {
             first.close();
             out.close();
             for (int k = 0; k < summary.size(); k++) {
-                ArrayList current = summary.get(k);
+                ArrayList<String> current = summary.get(k);
                 for (int g = 0; g < current.size(); g++) {
                     out2.write( current.get(g).toString() + "\t");
                 }

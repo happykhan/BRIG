@@ -16,13 +16,17 @@
 
 package brig;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import org.jdom.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 
@@ -31,8 +35,9 @@ import org.jdom.Element;
  * @author Nabil
  */
 public class Three2 extends javax.swing.JFrame {
+
+    private static final Logger log = LoggerFactory.getLogger(Three2.class);
     Two parent;
-    Thread ip;
     /** Creates new form Three */
     public Three2(Two par) {
         // create all components and add them
@@ -97,6 +102,8 @@ public class Three2 extends javax.swing.JFrame {
         confirmText.setColumns(20);
         confirmText.setEditable(false);
         confirmText.setRows(5);
+        confirmText.setLineWrap(true);
+        confirmText.setWrapStyleWord(true);
         jScrollPane1.setViewportView(confirmText);
 
         jLabel1.setText("Please confirm your configuration:");
@@ -127,6 +134,16 @@ public class Three2 extends javax.swing.JFrame {
 
         imageFormat.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "jpg", "png", "svg", "svgz" }));
 
+        openFolderButton = new javax.swing.JButton("Open Output Folder");
+        openFolderButton.addActionListener(evt -> openOutputFolder());
+
+        copyLogButton = new javax.swing.JButton("Copy Log");
+        copyLogButton.addActionListener(evt -> {
+            String text = confirmText.getText();
+            java.awt.Toolkit.getDefaultToolkit().getSystemClipboard()
+                .setContents(new java.awt.datatransfer.StringSelection(text), null);
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -134,11 +151,15 @@ public class Three2 extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 399, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 500, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(previousButton, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(41, 41, 41)
-                        .addComponent(submit, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(previousButton, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(10, 10, 10)
+                        .addComponent(submit, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(10, 10, 10)
+                        .addComponent(openFolderButton)
+                        .addGap(10, 10, 10)
+                        .addComponent(copyLogButton))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -151,10 +172,10 @@ public class Three2 extends javax.swing.JFrame {
                             .addComponent(jLabel5))
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(titleField, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
+                            .addComponent(titleField, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
                             .addComponent(blastOptions, javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                .addComponent(outputField, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(outputField, javax.swing.GroupLayout.PREFERRED_SIZE, 338, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(queryBrowseButton))))
                     .addComponent(noBlast, javax.swing.GroupLayout.Alignment.LEADING))
@@ -187,9 +208,11 @@ public class Three2 extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(previousButton, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(submit, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(submit, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(openFolderButton, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(copyLogButton, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -212,19 +235,21 @@ public class Three2 extends javax.swing.JFrame {
         BRIG.PROFILE.getRootElement().setAttribute("imageFormat", imageFormat.getSelectedItem().toString());
         String blastOpt = BRIG.BlastOption( blastOptions.getText() );
         if (blastOpt  == null ) {            
-            //submit.setVisible(false);
+            submit.setEnabled(false);
             outputField.setEnabled(false);
             confirmText.append("--------------------------------------\n");
-            ip = new Thread() {
+            new javax.swing.SwingWorker<Void, Void>() {
                 @Override
-                public void run() {
-                    try {
-                        compute();
-                    } catch (Exception e) {
-                    }
+                protected Void doInBackground() {
+                    compute();
+                    return null;
                 }
-            };
-            ip.start();
+                @Override
+                protected void done() {
+                    submit.setEnabled(true);
+                    outputField.setEnabled(true);
+                }
+            }.execute();
             
         } else {
             JOptionPane.showMessageDialog(this,
@@ -250,9 +275,29 @@ public class Three2 extends javax.swing.JFrame {
 
 }//GEN-LAST:event_queryBrowseButtonActionPerformed
 
+    private void openOutputFolder() {
+        String outputDir = BRIG.PROFILE.getRootElement().getAttributeValue("outputFolder");
+        if (outputDir != null && !outputDir.isEmpty()) {
+            File dir = new File(outputDir);
+            if (dir.isDirectory()) {
+                try {
+                    Desktop.getDesktop().open(dir);
+                } catch (Exception e) {
+                    log.error("Could not open output folder", e);
+                }
+            }
+        }
+    }
+
     private void compute() {
         /* Parse GENBANK input file. If required.
         /* format db in scratch dir in output folder and run blast for each ring. */
+        BRIG.outputArea = confirmText;
+        long startTime = System.currentTimeMillis();
+        Runtime runtime = Runtime.getRuntime();
+        NumberFormat fmt = NumberFormat.getInstance();
+        BRIG.Print("Memory: " + fmt.format(runtime.freeMemory() / (1024 * 1024)) + " MB free / "
+                + fmt.format(runtime.maxMemory() / (1024 * 1024)) + " MB max");
         Element root = BRIG.PROFILE.getRootElement();
         String output = root.getAttributeValue("outputFolder");
         if ((new File(output)).isDirectory()) {
@@ -260,7 +305,7 @@ public class Three2 extends javax.swing.JFrame {
             String fileName = BRIG.FetchFilename(root.getAttributeValue("queryFile"));
             boolean genbank = BRIG.isGenbank(root.getAttributeValue("queryFile"));
             boolean embl = BRIG.isEmbl(root.getAttributeValue("queryFile"));
-            System.out.println(output + "?");
+            log.debug("Output directory: {}", output);
             if (genbank || embl) {
                 try {
                     String ou = output + BRIG.SL + "scratch" + BRIG.SL + fileName;
@@ -280,7 +325,7 @@ public class Three2 extends javax.swing.JFrame {
                 } catch (Exception e) {
                     BRIG.Print("SYS_ERROR: "
                             + e.getMessage());
-                    e.printStackTrace();
+                    log.error("Failed to format genbank input", e);
                 }
             } else if (BRIG.PROFILE.getRootElement().getAttributeValue("spacer") != null) {
                 try {
@@ -296,7 +341,7 @@ public class Three2 extends javax.swing.JFrame {
                 } catch (Exception e) {
                     BRIG.Print("SYS_ERROR: "
                             + e.getMessage());
-                    e.printStackTrace();
+                    log.error("Failed to format multi-FASTA input", e);
                 }
             } else {
                 root.setAttribute("queryFastaFile", root.getAttributeValue("queryFile"));
@@ -312,30 +357,43 @@ public class Three2 extends javax.swing.JFrame {
                 }
             }
             BRIG.dumpXML("errorlog.xml",BRIG.PROFILE);
-            BRIG.Print("Initializing XML output..");
-            BRIG.Print(BRIG.WriteXMLLegend());
-            BRIG.Print("Running BLAST...");
+            BRIG.Print("\nInitializing XML output...");
+            String legendResult = BRIG.WriteXMLLegend();
+            if (legendResult != null && !legendResult.isEmpty()) {
+                log.debug(legendResult);
+            }
+            BRIG.Print("\nRunning BLAST...");
             int d = 0;
             if (noBlast.isSelected()) {
                 d = 1;
+                BRIG.Print("(Re-running all BLAST searches)");
             }
-            BRIG.Print(BRIG.RunBlast(d));
-            BRIG.Print("Parsing BLAST Results...");
+            String blastResult = BRIG.RunBlast(d);
+            if (blastResult != null && !blastResult.isEmpty()) {
+                log.debug(blastResult);
+            }
+            BRIG.Print("\nParsing BLAST results...");
             try {
-                BRIG.Print(BRIG.ParseBlast());
+                String parseResult = BRIG.ParseBlast();
+                if (parseResult != null && !parseResult.isEmpty()) {
+                    log.debug(parseResult);
+                }
             } catch (IOException ex) {
                 BRIG.Print("SYS_ERROR: Could not write line: " +
                         ex.getMessage());
             }
-            BRIG.Print("Rendering CGVIEW image...");
+            BRIG.Print("\nRendering image...");
             root.setAttribute("outputFile", outputField.getText() ) ;
             BRIG.Print(BRIG.RunCGview(imageFormat.getSelectedItem().toString()));
+            long elapsed = (System.currentTimeMillis() - startTime) / 1000;
+            BRIG.Print("\nCompleted in " + elapsed + "s. Memory used: "
+                    + fmt.format((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024)) + " MB");
+            String outFile = outputField.getText() + "." + imageFormat.getSelectedItem().toString();
+            BRIG.Print("Output: " + outFile);
         } else {
             BRIG.Print("SYS_ERROR: Output directory is not a valid directory. Cannot continue.\n" +
                     "Please check output location is valid directory and writeable.\n");
         }
-        submit.setVisible(true);
-        outputField.setEnabled(true);
     }
 
 
@@ -359,6 +417,8 @@ public class Three2 extends javax.swing.JFrame {
     private javax.swing.JButton queryBrowseButton;
     private javax.swing.JButton submit;
     private javax.swing.JTextField titleField;
+    private javax.swing.JButton openFolderButton;
+    private javax.swing.JButton copyLogButton;
     // End of variables declaration//GEN-END:variables
 
 

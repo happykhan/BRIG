@@ -21,15 +21,13 @@ String blastOptions;
 String legendPosition;
 File queryFile;
 File outputFolder;
-boolean blastPlus;
 int spacer;
 String imageFormat;
 String title;
 boolean archive;
 
 /* BRIG blastOptions="-evalue 0.00000000005 -dust no -num_threads 8" legendPosition="upper-right" queryF
-ile="SPLE4-LEE.fna" outputFolder="" blastPlus="yes" spacer="50" imageFormat="jpg" title="" archive="tr
-ue"*/
+ile="SPLE4-LEE.fna" outputFolder="" spacer="50" imageFormat="jpg" title="" archive="true"*/
 BRIGSettings BRIGSet;
 CGViewSettings CGSet;
 ArrayList<Ring> Rings;
@@ -38,7 +36,6 @@ Ref RefFiles;
     public Session(){
         blastOptions = "" ;
         legendPosition = "middle-right";
-        blastPlus = true;
         imageFormat = "png";
         title = "" ;
         archive = false; 
@@ -66,10 +63,10 @@ class BRIGSettings {
     int defaultUpper;
     int defaultLower;
     int defaultMin;
-    ArrayList RingColour;
-    ArrayList genbankFiles;
-    ArrayList emblFiles;
-    ArrayList fastaFiles;
+    ArrayList<String> RingColour;
+    ArrayList<String> genbankFiles;
+    ArrayList<String> emblFiles;
+    ArrayList<String> fastaFiles;
     File blastLocation;
     int divider  ;
     int mulitpler ;

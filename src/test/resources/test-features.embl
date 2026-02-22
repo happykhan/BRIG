@@ -1,0 +1,23 @@
+ID   TEST_FEAT; SV 1; linear; genomic DNA; STD; UNK; 500 BP.
+AC   TEST002;
+DE   Test sequence with multiple features for AnnoXML tests.
+FH   Key             Location/Qualifiers
+FT   source          1..500
+FT                   /organism="Test organism"
+FT   CDS             20..200
+FT                   /gene="emblGeneA"
+FT                   /product="hypothetical protein"
+FT   CDS             complement(250..400)
+FT                   /gene="emblGeneB"
+FT                   /product="test adhesin"
+SQ   Sequence 500 BP;
+     atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc       60
+     atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc      120
+     atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc      180
+     atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc      240
+     atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc      300
+     atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc      360
+     atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc      420
+     atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc      480
+     atgcatgcat gcatgcatgc                                                   500
+//

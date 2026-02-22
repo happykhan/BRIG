@@ -1,0 +1,7 @@
+454-S.aureus.Mu50-small.ace
+454AllContigs-S.aureus.Mu50.fna
+Mu50-small.sam
+S.aureus.Mu50-plasmid-AP003367.fna
+S.aureus.Mu50-plasmid-AP003367.gbk
+S.aureus.SAP014A-plasmid-GQ900379.gbk
+S.aureus.pSK57-plasmid-GQ900493.gbk

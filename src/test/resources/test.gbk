@@ -1,0 +1,10 @@
+LOCUS       TEST_SEQ                 23 bp    DNA     linear   UNK
+DEFINITION  Test sequence for BRIG characterization tests.
+ACCESSION   TEST001
+VERSION     TEST001.1
+FEATURES             Location/Qualifiers
+     source          1..23
+                     /organism="Test"
+ORIGIN
+        1 atgcatgcat gcnnnatgca tgc
+//

@@ -17,9 +17,9 @@ Users can save their work in BRIG from the File menu (Figure 15) and can open th
 BRIG will run with default BLAST options if the BLAST options field is left blank. BLAST options field (Figure 16) can be used to add custom BLAST options.
 
 !!! warning "Pro Tip 16"
-    BRIG handles all the file input and output into BLAST, so **DO NOT use -o, -d, -p, -i, -m in BLAST legacy or -out, -db, -query, -outfmt in BLAST+.**
+    BRIG handles all the file input and output into BLAST+, so **DO NOT use -out, -db, -query, or -outfmt** as custom options.
 
-The list below highlights some BLAST parameters for BLAST+; more common parameters are in bold.
+The list below highlights some BLAST+ parameters; more common parameters are in bold.
 
 ![Set custom BLAST options](images/screenshot-blast-options.png)
 
@@ -37,19 +37,9 @@ The list below highlights some BLAST parameters for BLAST+; more common paramete
 !!! tip "Pro Tip 17"
     BRIG runs BLAST+ with task as blastn, unless overridden by the user.
 
-### BLAST legacy options
-
-- **-e** Expectation value (E) [Real] default = 10.0
-- **-F** Filter query sequence (DUST with blastn, SEG with others) [String] default = T
-- **-a** Number of processors to use [Integer] default = 1
-- -T Produce HTML output [T/F] default = F
-- -l Restrict search of database to list of GI's [String] Optional
-- -W Word size, default if zero (blastn 11, megablast 28, all others 3) [Integer] default = 0
-- -n MegaBlast search [T/F] default = F
-
 ## Setting BRIG options
 
-The BRIG options window under **Preferences > BRIG options** in the first main screen allows users to set options that include valid Genbank, EMBL or FASTA file name extensions; percentage identity thresholds; and memory allocated to CGView.
+The BRIG options window under **Preferences > BRIG options** in the first main screen allows users to set options that include valid GenBank, EMBL or FASTA file name extensions; percentage identity thresholds; and memory allocated to CGView.
 
 Changes can be applied to just the current session through "Save & Close" or changes can be saved as the default settings for every new session in BRIG through "Save settings as default". There are two BRIG option tabs.
 
@@ -59,7 +49,7 @@ Changes can be applied to just the current session through "Save & Close" or cha
 
 *Figure 17: First BRIG options window, accessible from Preferences > BRIG options*
 
-- **Genbank file extensions**: Users can specify the file extensions they use as GenBank files (with commas between extensions). e.g .gbk.
+- **GenBank file extensions**: Users can specify the file extensions they use as GenBank files (with commas between extensions). e.g .gbk.
 - **FASTA file extensions**: Users can specify the file extensions they use as FASTA files (with commas between extensions). e.g .fa,.fna,.fas.
 - **EMBL file extensions**: Users can specify the file extensions they use as EMBL files (with commas between extensions). e.g .embl.
 - **BLAST binary folder**: Users must specify the location of BLAST executables, leave this blank if BLAST is on their PATH.
@@ -101,7 +91,7 @@ Here is a list of some of the more useful options:
 
 ### Backbone and ruler settings
 
-- **Backbone radius**: Sets the radius size of the ring circle. Increase this to make a larger ring and decrease to make it smaller. N.B this will not automatically scale with the Image height and width.
+- **Backbone radius**: Sets the radius size of the ring circle. Increase this to make a larger ring and decrease to make it smaller. N.B. this will not automatically scale with the Image height and width.
 
 ### Label settings
 
