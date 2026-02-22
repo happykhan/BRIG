@@ -261,6 +261,10 @@ public static String parseBlast2Graph(int[] value, int[] repeats, String input, 
                                 }
                                 blastCmd.addAll(Arrays.asList(blastLocation + blastProg, "-outfmt", "6", "-query", queryArg, "-db", db, "-out", ou));
                                 blastCmd.addAll(BRIG.tokenizeOptions(blastOptions));
+                                int graphThreads = BlastSettings.getBlastThreads();
+                                if (graphThreads > 1 && (blastOptions == null || !blastOptions.contains("-num_threads"))) {
+                                    blastCmd.addAll(Arrays.asList("-num_threads", String.valueOf(graphThreads)));
+                                }
                                 error += BRIG.formatCommand(blastCmd) + "\n";
                                 Process q = BRIG.execCommand(blastCmd);
                                 String data;

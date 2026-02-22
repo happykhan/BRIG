@@ -21,6 +21,22 @@ public class BlastSettings {
 
     private static final Logger log = LoggerFactory.getLogger(BlastSettings.class);
 
+    public static int getBlastThreads() {
+        int defaultThreads = Runtime.getRuntime().availableProcessors();
+        if (BRIG.PROFILE == null) return defaultThreads;
+        Element settings = BRIG.PROFILE.getRootElement().getChild("brig_settings");
+        if (settings != null) {
+            String val = settings.getAttributeValue("blastThreads");
+            if (val != null) {
+                try {
+                    int t = Integer.parseInt(val);
+                    if (t > 0) return t;
+                } catch (NumberFormatException e) { /* use default */ }
+            }
+        }
+        return defaultThreads;
+    }
+
     public static String BlastOption(String opt) {
         var error = new StringBuilder("BLAST+ option error: ");
         var noBlast = new String[]{

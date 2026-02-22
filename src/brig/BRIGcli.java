@@ -33,6 +33,7 @@ public class BRIGcli {
         String title = null;
         String format = "png";
         String configPath = null;
+        int threads = 0;
         boolean gcContent = false;
         boolean gcSkew = false;
 
@@ -50,6 +51,16 @@ public class BRIGcli {
                     break;
                 case "--config":
                     if (i + 1 < args.length) configPath = args[++i];
+                    break;
+                case "--threads":
+                    if (i + 1 < args.length) {
+                        try {
+                            threads = Integer.parseInt(args[++i]);
+                        } catch (NumberFormatException e) {
+                            System.err.println("Error: --threads requires a numeric value");
+                            System.exit(1);
+                        }
+                    }
                     break;
                 case "--gc-content":
                     gcContent = true;
@@ -131,6 +142,14 @@ public class BRIGcli {
         // Apply JSON config overrides if provided
         if (configPath != null) {
             applyJsonConfig(configPath);
+        }
+
+        // Set thread count if specified
+        if (threads > 0) {
+            Element brigSettings = BRIG.PROFILE.getRootElement().getChild("brig_settings");
+            if (brigSettings != null) {
+                brigSettings.setAttribute("blastThreads", String.valueOf(threads));
+            }
         }
 
         // Set profile attributes
@@ -477,6 +496,7 @@ public class BRIGcli {
         System.out.println("  --gc-content         Add GC Content ring");
         System.out.println("  --gc-skew            Add GC Skew ring");
         System.out.println("  --config <path>      JSON config file for settings overrides");
+        System.out.println("  --threads <n>        Number of threads for BLAST (default: all CPUs)");
         System.out.println("  --help, -h           Show this help message");
         System.out.println();
         System.out.println("Examples:");

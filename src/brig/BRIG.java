@@ -707,6 +707,7 @@ public class BRIG extends Thread{
         String queryFastaFile = PROFILE.getRootElement().getAttributeValue("queryFastaFile");
         String output = PROFILE.getRootElement().getAttributeValue("outputFolder");
         String blastOptions = PROFILE.getRootElement().getAttributeValue("blastOptions");
+        if (blastOptions == null) blastOptions = "";
         String blastLocation = "";
         if (PROFILE.getRootElement().getChild("brig_settings") != null) {
             if (PROFILE.getRootElement().getChild("brig_settings").getAttributeValue("blastLocation") != null) {
@@ -718,7 +719,9 @@ public class BRIG extends Thread{
                 }
             }
         }
-        Print( "Reference sequence length: " + NumberFormat.getInstance().format(BRIG.GEN_LENGTH) + " bp");
+        int numThreads = BlastSettings.getBlastThreads();
+        Print("Reference sequence length: " + NumberFormat.getInstance().format(BRIG.GEN_LENGTH) + " bp");
+        Print("BLAST threads: " + numThreads);
         for (int i = 0; i < ringList.size(); i++) {
             Element currentRing = ringList.get(i);
             String ringName = currentRing.getAttributeValue("name");
@@ -807,6 +810,9 @@ public class BRIG extends Thread{
                             if ("blastp".equals(blastType) || "blastn".equals(blastType)) {
                                 blastCmd.addAll(Arrays.asList("-task", blastType));
                             }
+                        }
+                        if (numThreads > 1 && !blastOptions.contains("-num_threads")) {
+                            blastCmd.addAll(Arrays.asList("-num_threads", String.valueOf(numThreads)));
                         }
                         sequence.get(j).setAttribute("blastResults", ou);
                         File blOut = new File(ou);
