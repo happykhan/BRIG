@@ -1,0 +1,51 @@
+site_name: BRIG - BLAST Ring Image Generator
+site_description: Documentation for BRIG, a cross-platform desktop application for generating circular comparison images of genomes using BLAST
+site_url: https://happykhan.github.io/BRIG/
+repo_url: https://github.com/happykhan/BRIG
+repo_name: happykhan/BRIG
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - toc.follow
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - BLAST Warnings: blast-warnings.md
+  - Walkthroughs:
+      - Whole Genome Comparisons: whole-genome-comparisons.md
+      - Multi-FASTA Reference: multi-fasta-reference.md
+      - Graphs and Assemblies: graphs-and-assemblies.md
+      - Custom Annotations: custom-annotations.md
+  - Configuration: configuration.md
+  - Licence: licence.md

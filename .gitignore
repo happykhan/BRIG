@@ -1,8 +1,13 @@
 errorlog.xml
+site/
+BRIG_examples/
+.vscode 
+.claude 
 
 # Build and dist dirs
 build/
 dist/
+target/ 
 
 # Compiled class file
 *.class
