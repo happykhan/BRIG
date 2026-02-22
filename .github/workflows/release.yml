@@ -50,8 +50,8 @@ jobs:
           echo "Downloading $BLAST_FILE"
           curl -sL "${BLAST_FTP}${BLAST_FILE}" -o blast.tar.gz
           mkdir -p target/blast
-          BLAST_DIR=$(tar tzf blast.tar.gz | head -1 | cut -d/ -f1)
           tar xzf blast.tar.gz
+          BLAST_DIR=$(ls -d ncbi-blast-*)
           for bin in blastn blastp blastx tblastn tblastx makeblastdb; do
             cp "$BLAST_DIR/bin/$bin" target/blast/
           done
@@ -92,8 +92,8 @@ jobs:
           echo "Downloading $BLAST_FILE"
           curl -sL "${BLAST_FTP}${BLAST_FILE}" -o blast.tar.gz
           mkdir -p target/blast
-          BLAST_DIR=$(tar tzf blast.tar.gz | head -1 | cut -d/ -f1)
           tar xzf blast.tar.gz
+          BLAST_DIR=$(ls -d ncbi-blast-*)
           for bin in blastn blastp blastx tblastn tblastx makeblastdb; do
             cp "$BLAST_DIR/bin/${bin}.exe" target/blast/
           done
