@@ -200,6 +200,7 @@ public class CustomXML extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Add Custom Features");
+        if (BRIG.APP_ICON != null) setIconImage(BRIG.APP_ICON);
 
         addButton.setText("Add");
         addButton.addActionListener(new java.awt.event.ActionListener() {
