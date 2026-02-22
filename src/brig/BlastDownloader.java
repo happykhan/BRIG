@@ -200,5 +200,27 @@ public class BlastDownloader {
         if (exit != 0) {
             throw new IOException("tar extraction failed with exit code " + exit);
         }
+        // On macOS, downloaded files get a quarantine attribute that prevents
+        // execution. Strip it so BLAST binaries can run from a .app bundle.
+        if (System.getProperty("os.name", "").toLowerCase().contains("mac")) {
+            removeQuarantine(BLAST_HOME);
+        }
+    }
+
+    /**
+     * Removes the com.apple.quarantine extended attribute from all files
+     * under the given directory so that downloaded executables can run.
+     */
+    private static void removeQuarantine(Path dir) {
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    "xattr", "-rd", "com.apple.quarantine", dir.toString());
+            pb.redirectErrorStream(true);
+            Process p = pb.start();
+            p.getInputStream().readAllBytes(); // drain output
+            p.waitFor();
+        } catch (Exception e) {
+            log.debug("Could not remove quarantine attribute (non-fatal)", e);
+        }
     }
 }

@@ -43,6 +43,14 @@ jobs:
         with:
           name: BRIG-jar
           path: target/
+      - name: Download BLAST+ for macOS
+        run: |
+          BLAST_FTP="https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/"
+          BLAST_FILE=$(curl -sL "$BLAST_FTP" | grep -oE 'ncbi-blast-[0-9.]+[+]-aarch64-macosx\.tar\.gz' | head -1)
+          echo "Downloading $BLAST_FILE"
+          curl -sL "${BLAST_FTP}${BLAST_FILE}" -o blast.tar.gz
+          mkdir -p target/blast
+          tar xzf blast.tar.gz --strip-components=2 -C target/blast '*/bin/'
       - name: Create macOS DMG
         run: |
           jpackage \
@@ -72,6 +80,15 @@ jobs:
         with:
           name: BRIG-jar
           path: target/
+      - name: Download BLAST+ for Windows
+        shell: bash
+        run: |
+          BLAST_FTP="https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/"
+          BLAST_FILE=$(curl -sL "$BLAST_FTP" | grep -oE 'ncbi-blast-[0-9.]+[+]-x64-win64\.tar\.gz' | head -1)
+          echo "Downloading $BLAST_FILE"
+          curl -sL "${BLAST_FTP}${BLAST_FILE}" -o blast.tar.gz
+          mkdir -p target/blast
+          tar xzf blast.tar.gz --strip-components=2 -C target/blast '*/bin/'
       - name: Create Windows MSI
         shell: bash
         run: |

@@ -49,6 +49,13 @@ public class BlastSettings {
     }
 
     public static boolean isBlastOk() throws IOException {
+        // 0. Try embedded BLAST (bundled inside jpackage installer)
+        String embeddedBin = BRIG.APP_DIR + "blast" + BRIG.SL;
+        if (tryBlastPlus(embeddedBin)) {
+            setBlastLocation(embeddedBin.substring(0, embeddedBin.length() - 1));
+            return true;
+        }
+
         var bin = getConfiguredBlastBin();
 
         // 1. Try configured/PATH location
