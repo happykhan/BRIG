@@ -750,6 +750,11 @@ public class Graph extends javax.swing.JFrame {
                 List<String> blastCmd = new ArrayList<>();
                 blastCmd.addAll(Arrays.asList(blastLocation + "blastn", "-outfmt", "6", "-query", queryField.getText(), "-db", sequenceAddField.getText(), "-out", ou));
                 blastCmd.addAll(BRIG.tokenizeOptions(blastOptionField.getText()));
+                int graphThreads = BlastSettings.getBlastThreads();
+                String blastOptText = blastOptionField.getText();
+                if (graphThreads > 1 && (blastOptText == null || !blastOptText.contains("-num_threads"))) {
+                    blastCmd.addAll(Arrays.asList("-num_threads", String.valueOf(graphThreads)));
+                }
                 exec = BRIG.formatCommand(blastCmd);
                 updateProgress(exec);
                 p = BRIG.execCommand(blastCmd);
