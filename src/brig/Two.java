@@ -97,6 +97,7 @@ public class Two extends javax.swing.JFrame {
             }
         };
         setTitle(BRIG.header + " - Customize rings") ;
+        if (BRIG.APP_ICON != null) setIconImage(BRIG.APP_ICON);
         ringu.addMouseListener(mouseListener);
         MouseAdapter listener = new ReorderListener(ringu,this);
         ringu.addMouseListener(listener);
