@@ -91,6 +91,7 @@ public class Options extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Configure BRIG options...");
+        if (BRIG.APP_ICON != null) setIconImage(BRIG.APP_ICON);
 
         jToggleButton2.setText("Browse");
         jToggleButton2.addActionListener(new java.awt.event.ActionListener() {
