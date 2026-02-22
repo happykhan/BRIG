@@ -92,6 +92,7 @@ public class QuickProfile extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Load a template");
+        if (BRIG.APP_ICON != null) setIconImage(BRIG.APP_ICON);
 
         norings.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {

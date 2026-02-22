@@ -53,6 +53,7 @@ private DefaultListModel refModel;
         queryField.setToolTipText("This sequence will be the image backbone");
         jButton1.setToolTipText("Select a sequence and click here to remove it from the query sequence list");
         setTitle(BRIG.header + " - Select input data");
+        if (BRIG.APP_ICON != null) setIconImage(BRIG.APP_ICON);
         reload();
     }
     /** This method is called from within the constructor to
