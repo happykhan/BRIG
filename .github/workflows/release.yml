@@ -88,7 +88,7 @@ jobs:
           echo "Downloading $BLAST_FILE"
           curl -sL "${BLAST_FTP}${BLAST_FILE}" -o blast.tar.gz
           mkdir -p target/blast
-          tar xzf blast.tar.gz --strip-components=2 -C target/blast '*/bin/'
+          tar xzf blast.tar.gz --wildcards --strip-components=2 -C target/blast '*/bin/'
       - name: Create Windows MSI
         shell: bash
         run: |
