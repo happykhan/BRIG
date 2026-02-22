@@ -24,6 +24,7 @@ public class Console extends javax.swing.JFrame {
     public Console() {
         initComponents();
         jTextArea1.setEditable(false);
+        if (BRIG.APP_ICON != null) setIconImage(BRIG.APP_ICON);
     }
 
     /** This method is called from within the constructor to
