@@ -13,5 +13,14 @@ jobs:
         with:
           distribution: temurin
           java-version: 25
+      - name: Install local cgview dependency
+        run: >
+          mvn install:install-file
+          -Dfile=cgview/cgview.jar
+          -DgroupId=ca.ualberta.stothard.cgview
+          -DartifactId=cgview
+          -Dversion=2.0.3-SNAPSHOT
+          -Dpackaging=jar
+          -q
       - run: mvn clean package -q
       - run: mvn test
