@@ -36,6 +36,8 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
+import java.awt.Image;
+import javax.imageio.ImageIO;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -61,6 +63,7 @@ public class BRIG extends Thread{
     public static final String header;
     public static final String APP_DIR;
     public static final String BRIG_HOME;
+    public static final Image APP_ICON;
     static {
         String v = BRIG.class.getPackage().getImplementationVersion();
         if (v == null) v = "dev";
@@ -68,6 +71,19 @@ public class BRIG extends Thread{
         APP_DIR = getAppDir();
         BRIG_HOME = System.getProperty("user.home") + File.separator + ".brig";
         PROFILE_LOCATION = initProfileLocation();
+        APP_ICON = loadAppIcon();
+    }
+
+    private static Image loadAppIcon() {
+        try {
+            InputStream in = BRIG.class.getResourceAsStream("/brig/resources/brig-icon.png");
+            if (in != null) {
+                return ImageIO.read(in);
+            }
+        } catch (Exception e) {
+            // icon is optional
+        }
+        return null;
     }
 
     static String getAppDir() {
@@ -204,6 +220,13 @@ public class BRIG extends Thread{
                 Element re = new Element("special");
                 re.setAttribute("value", "GC Skew");
                 PROFILE.getRootElement().addContent(re);
+            }
+            // Set macOS Dock icon
+            if (APP_ICON != null) {
+                try {
+                    java.awt.Taskbar.getTaskbar().setIconImage(APP_ICON);
+                } catch (UnsupportedOperationException | SecurityException ignored) {
+                }
             }
             new One().setVisible(true);
         } catch (JDOMException e) {
