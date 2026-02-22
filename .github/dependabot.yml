@@ -4,6 +4,11 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      - dependency-name: "org.jdom:jdom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "com.github.samtools:htsjdk"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
