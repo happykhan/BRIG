@@ -1,0 +1,9 @@
+[project]
+name = "BRIG"
+version = "1.0.0"
+description = "BLAST Ring Image Generator"
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+
+[dependencies]
+blast = ">=2.16"
