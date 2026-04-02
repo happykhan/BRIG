@@ -802,7 +802,9 @@ public class BRIG extends Thread{
                         } else {
                             Print("  Database exists, reusing cached.");
                         }
-                        String ou = output + SL + "scratch" + SL + FetchFilename(goodRingFile) + "Vs" + FetchFilename(queryFastaFile) + ".tab";
+                        // Prefix with ring/sequence index to avoid collision when two files
+                        // share the same name but live in different directories (issue #53)
+                        String ou = output + SL + "scratch" + SL + "r" + i + "s" + j + "_" + FetchFilename(goodRingFile) + "Vs" + FetchFilename(queryFastaFile) + ".tab";
                         List<String> blastCmd = new ArrayList<>();
                         blastCmd.addAll(Arrays.asList(blastLocation + blastType, "-outfmt", "6", "-query", goodRingFile, "-db", queryFastaFile, "-out", ou));
                         blastCmd.addAll(tokenizeOptions(blastOptions));
@@ -1376,7 +1378,7 @@ public class BRIG extends Thread{
     }
 
     private static String CGContent(BufferedWriter out, String QUERY_MASTER_FILE) throws IOException {
-        int div = autoScale(GEN_LENGTH);
+        int div = resolveGcWindow();
         String error = "";
         int len = 0;
         int cPlusG = 0;
@@ -1564,7 +1566,7 @@ public class BRIG extends Thread{
 
     private static String CGskew(BufferedWriter out, String QUERY_MASTER_FILE) throws IOException {
         String error = "";
-        int div = autoScale(GEN_LENGTH);
+        int div = resolveGcWindow();
         out.write("<feature decoration=\"arc\" opacity = \"1.0\">");
         out.newLine();
         int len = 0;
@@ -1742,6 +1744,25 @@ public class BRIG extends Thread{
 
     public  static int autoScale(int length  ){
         return (length / 3000);
+    }
+
+    /**
+     * Returns the GC skew/content window size.
+     * Reads {@code gcWindow} from {@code brig_settings} if set (issue #56);
+     * falls back to {@link #autoScale(int)} otherwise.
+     */
+    public static int resolveGcWindow() {
+        if (PROFILE != null && PROFILE.getRootElement().getChild("brig_settings") != null) {
+            String val = PROFILE.getRootElement().getChild("brig_settings").getAttributeValue("gcWindow");
+            if (val != null && !val.isEmpty()) {
+                try {
+                    int w = Integer.parseInt(val);
+                    if (w > 0) return w;
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        return autoScale(GEN_LENGTH);
     }
 }
 

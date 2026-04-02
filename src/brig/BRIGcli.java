@@ -36,6 +36,7 @@ public class BRIGcli {
         int threads = 0;
         boolean gcContent = false;
         boolean gcSkew = false;
+        int gcWindow = 0;
 
         int i = 0;
         while (i < args.length) {
@@ -67,6 +68,16 @@ public class BRIGcli {
                     break;
                 case "--gc-skew":
                     gcSkew = true;
+                    break;
+                case "--gc-window":
+                    if (i + 1 < args.length) {
+                        try {
+                            gcWindow = Integer.parseInt(args[++i]);
+                        } catch (NumberFormatException e) {
+                            System.err.println("Error: --gc-window requires a numeric value");
+                            System.exit(1);
+                        }
+                    }
                     break;
                 case "--help":
                 case "-h":
@@ -149,6 +160,14 @@ public class BRIGcli {
             Element brigSettings = BRIG.PROFILE.getRootElement().getChild("brig_settings");
             if (brigSettings != null) {
                 brigSettings.setAttribute("blastThreads", String.valueOf(threads));
+            }
+        }
+
+        // Set GC window size if specified (issue #56)
+        if (gcWindow > 0) {
+            Element brigSettings = BRIG.PROFILE.getRootElement().getChild("brig_settings");
+            if (brigSettings != null) {
+                brigSettings.setAttribute("gcWindow", String.valueOf(gcWindow));
             }
         }
 
@@ -495,6 +514,7 @@ public class BRIGcli {
         System.out.println("  --format <fmt>       Image format: png, jpg, svg, svgz (default: png)");
         System.out.println("  --gc-content         Add GC Content ring");
         System.out.println("  --gc-skew            Add GC Skew ring");
+        System.out.println("  --gc-window <n>      Window size for GC skew/content calculation (default: auto)");
         System.out.println("  --config <path>      JSON config file for settings overrides");
         System.out.println("  --threads <n>        Number of threads for BLAST (default: all CPUs)");
         System.out.println("  --help, -h           Show this help message");

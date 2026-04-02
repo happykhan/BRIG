@@ -249,11 +249,13 @@ public static String parseBlast2Graph(int[] value, int[] repeats, String input, 
                             List<String> blastCmd = new ArrayList<>();
                             try {
                                 String queryArg;
+                                // Prefix with ring/sequence indices to avoid collision when two files
+                                // share the same name but live in different directories (issue #53)
                                 if (isGbk) {
-                                    ou = output + SL + "scratch" + SL +  BRIG.FetchFilename(queryFastaFile) + "Vs" + BRIG.FetchFilename(db) + ".tab";
+                                    ou = output + SL + "scratch" + SL + "r" + i + "s" + (j - 3) + "_" + BRIG.FetchFilename(queryFastaFile) + "Vs" + BRIG.FetchFilename(db) + ".tab";
                                     queryArg = queryFastaFile;
                                 } else {
-                                    ou = output + SL + "scratch" + SL + BRIG.FetchFilename(queryFile) + "Vs" + BRIG.FetchFilename(db) + ".tab";
+                                    ou = output + SL + "scratch" + SL + "r" + i + "s" + (j - 3) + "_" + BRIG.FetchFilename(queryFile) + "Vs" + BRIG.FetchFilename(db) + ".tab";
                                     queryArg = queryFile;
                                 }
                                 if (System.getProperty("os.name").toLowerCase().indexOf("windows") == -1) {

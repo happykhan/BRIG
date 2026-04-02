@@ -285,6 +285,90 @@ class BRIGStaticMethodsTest {
     }
 
     // -------------------------------------------------------------------
+    // resolveGcWindow (issue #56 — configurable GC skew/content window)
+    // -------------------------------------------------------------------
+
+    @Test
+    void resolveGcWindow_noProfile_usesAutoScale() {
+        BRIG.GEN_LENGTH = 3_000_000;
+        BRIG.PROFILE = null;
+        // autoScale(3_000_000) = 3_000_000 / 3000 = 1000
+        assertEquals(1000, BRIG.resolveGcWindow());
+    }
+
+    @Test
+    void resolveGcWindow_withGcWindowSetting_returnsConfiguredValue() {
+        BRIG.GEN_LENGTH = 3_000_000;
+        Document doc = new Document(new Element("BRIG"));
+        Element brigSettings = new Element("brig_settings");
+        brigSettings.setAttribute("gcWindow", "500");
+        doc.getRootElement().addContent(brigSettings);
+        BRIG.PROFILE = doc;
+
+        assertEquals(500, BRIG.resolveGcWindow());
+    }
+
+    @Test
+    void resolveGcWindow_withInvalidGcWindowSetting_fallsBackToAutoScale() {
+        BRIG.GEN_LENGTH = 6_000_000;
+        Document doc = new Document(new Element("BRIG"));
+        Element brigSettings = new Element("brig_settings");
+        brigSettings.setAttribute("gcWindow", "not-a-number");
+        doc.getRootElement().addContent(brigSettings);
+        BRIG.PROFILE = doc;
+
+        // autoScale(6_000_000) = 2000
+        assertEquals(2000, BRIG.resolveGcWindow());
+    }
+
+    @Test
+    void resolveGcWindow_withZeroGcWindow_fallsBackToAutoScale() {
+        BRIG.GEN_LENGTH = 3_000_000;
+        Document doc = new Document(new Element("BRIG"));
+        Element brigSettings = new Element("brig_settings");
+        brigSettings.setAttribute("gcWindow", "0");
+        doc.getRootElement().addContent(brigSettings);
+        BRIG.PROFILE = doc;
+
+        assertEquals(1000, BRIG.resolveGcWindow());
+    }
+
+    // -------------------------------------------------------------------
+    // Same-filename BLAST output paths (issue #53)
+    // -------------------------------------------------------------------
+
+    @Test
+    void blastOutputPath_differentRingIndices_produceDistinctPaths() {
+        // Verify that the naming scheme ring{i}seq{j}_<filename> is distinct for
+        // two files with the same basename but at different ring positions.
+        String output = "/tmp/out";
+        String queryFastaFile = "/ref/reference.fna";
+        String fileA = "/folderA/genome.fna";
+        String fileB = "/folderB/genome.fna";
+
+        // Simulate the path formula used in RunBlast (ring 0 seq 0 vs ring 1 seq 0)
+        String ouA = output + "/scratch/r0s0_" + BRIG.FetchFilename(fileA) + "Vs" + BRIG.FetchFilename(queryFastaFile) + ".tab";
+        String ouB = output + "/scratch/r1s0_" + BRIG.FetchFilename(fileB) + "Vs" + BRIG.FetchFilename(queryFastaFile) + ".tab";
+
+        assertNotEquals(ouA, ouB,
+                "Two same-named files in different rings must produce distinct BLAST output paths");
+    }
+
+    @Test
+    void blastOutputPath_sameRingDifferentSeqIndices_produceDistinctPaths() {
+        String output = "/tmp/out";
+        String queryFastaFile = "/ref/reference.fna";
+        String fileA = "/folderA/genome.fna";
+        String fileB = "/folderB/genome.fna";
+
+        String ouA = output + "/scratch/r0s0_" + BRIG.FetchFilename(fileA) + "Vs" + BRIG.FetchFilename(queryFastaFile) + ".tab";
+        String ouB = output + "/scratch/r0s1_" + BRIG.FetchFilename(fileB) + "Vs" + BRIG.FetchFilename(queryFastaFile) + ".tab";
+
+        assertNotEquals(ouA, ouB,
+                "Two same-named files in different sequence slots must produce distinct BLAST output paths");
+    }
+
+    // -------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------
 
