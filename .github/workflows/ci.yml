@@ -21,7 +21,7 @@ jobs:
           pixi-version: latest
 
       - name: Install BLAST+ via pixi
-        run: pixi install --frozen-lockfile false
+        run: pixi install
 
       - name: Install local cgview dependency
         run: >
