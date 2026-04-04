@@ -55,4 +55,5 @@ jobs:
       - name: Trigger release workflow
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_VERSION: ${{ steps.new_version.outputs.version }}
         run: gh workflow run release.yml --ref "v${NEW_VERSION}"
