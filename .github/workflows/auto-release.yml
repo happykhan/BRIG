@@ -49,16 +49,18 @@ jobs:
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version: $NEW_VERSION"
 
-      - name: Set new version in pom.xml
+      - name: Set new version in pom.xml and pixi.toml
         env:
           NEW_VERSION: ${{ steps.new_version.outputs.version }}
-        run: mvn versions:set -DnewVersion="$NEW_VERSION" -DgenerateBackupPoms=false -q
+        run: |
+          mvn versions:set -DnewVersion="$NEW_VERSION" -DgenerateBackupPoms=false -q
+          sed -i "s/^version = \".*\"/version = \"$NEW_VERSION\"/" pixi.toml
 
       - name: Commit version bump
         env:
           NEW_VERSION: ${{ steps.new_version.outputs.version }}
         run: |
-          git add pom.xml
+          git add pom.xml pixi.toml
           git commit -m "chore: bump version to ${NEW_VERSION} [no ci]"
 
       - name: Create and push tag
