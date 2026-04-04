@@ -66,7 +66,9 @@ public class About extends javax.swing.JFrame {
             }
         });
 
-        versionLabel.setText("Blast Ring Image Generator (BRIG) Version 0.81");
+        String v = BRIG.class.getPackage().getImplementationVersion();
+        if (v == null) v = "dev";
+        versionLabel.setText("Blast Ring Image Generator (BRIG) Version " + v);
 
         jLabel2.setText("Copyright Nabil Alikhan. 2010-2025.");
 
@@ -96,11 +98,25 @@ public class About extends javax.swing.JFrame {
             }
         });
 
+        doiLink = new javax.swing.JLabel();
+        doiLink.setText("<html><a href=''>doi: 10.1186/1471-2164-12-402</a></html>");
+        doiLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        doiLink.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    Desktop.getDesktop().browse(new URI("https://doi.org/10.1186/1471-2164-12-402"));
+                } catch (Exception ex) {
+                    log.error("Failed to open browser", ex);
+                }
+            }
+        });
+
         jTextArea1.setColumns(20);
         jTextArea1.setLineWrap(true);
         jTextArea1.setRows(5);
         jTextArea1.setEditable(false);
-        jTextArea1.setText("BRIG (BLAST Ring Image Generator) produces CGView-rendered circular\ngenome comparison images based on BLAST output.\n\nBRIG supports:\n*  Genbank/EMBL\n*  FASTA nucleotide; single entry or Multi-FASTA\n*  FASTA protein; single entry or Multi-FASTA\n\nBRIG is free software distributed under the GNU General Public License v3.\n\nFor documentation, source code, and release notes visit:\nhttps://github.com/happykhan/BRIG");
+        jTextArea1.setText("BRIG (BLAST Ring Image Generator) produces CGView-rendered circular\ngenome comparison images based on BLAST output.\n\nBRIG supports:\n*  Genbank/EMBL\n*  FASTA nucleotide; single entry or Multi-FASTA\n*  FASTA protein; single entry or Multi-FASTA\n\nBRIG is free software distributed under the GNU General Public License v3.\n\nFor documentation, source code, and release notes visit:\nhttps://github.com/happykhan/BRIG\n\n--- Citation ---\n\nIf you use BRIG in your research, please cite:\n\nNF Alikhan, NK Petty, NL Ben Zakour, SA Beatson (2011)\nBLAST Ring Image Generator (BRIG): simple prokaryote genome comparisons.\nBMC Genomics, 12:402.\ndoi: 10.1186/1471-2164-12-402");
         jScrollPane1.setViewportView(jTextArea1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -118,7 +134,8 @@ public class About extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 302, Short.MAX_VALUE)
                                 .addComponent(jButton1))
                             .addComponent(issuesLink)
-                            .addComponent(contactLabel)))
+                            .addComponent(contactLabel)
+                            .addComponent(doiLink)))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 568, Short.MAX_VALUE)))
@@ -137,6 +154,8 @@ public class About extends javax.swing.JFrame {
                 .addComponent(issuesLink)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(contactLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(doiLink)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 420, Short.MAX_VALUE)
                 .addContainerGap())
@@ -165,6 +184,7 @@ public class About extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel issuesLink;
     private javax.swing.JLabel contactLabel;
+    private javax.swing.JLabel doiLink;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JLabel versionLabel;

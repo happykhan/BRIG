@@ -73,7 +73,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="versionLabel">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Blast Ring Image Generator (BRIG) Version 0.81"/>
+        <Property name="text" type="java.lang.String" value="Blast Ring Image Generator (BRIG)"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">

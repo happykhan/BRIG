@@ -86,6 +86,7 @@ public class Graph extends javax.swing.JFrame {
         refBrowseButton = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
         blastOptionField = new javax.swing.JTextField();
+        blastOptionField.setText("-evalue 1e-5 -num_threads " + BlastSettings.getBlastThreads());
         jLabel5 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         outputFolderField = new javax.swing.JTextField();
@@ -333,10 +334,15 @@ public class Graph extends javax.swing.JFrame {
             }
             }
         }
-        fc.setFileSelectionMode(fc.DIRECTORIES_ONLY);
-        fc.showOpenDialog(this);       
-        if (fc.getSelectedFile() != null) {
-            outputFolderField.setText(fc.getSelectedFile().getAbsolutePath());
+        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fc.setDialogTitle("Select output folder");
+        int result = fc.showDialog(this, "Select");
+        if (result == JFileChooser.APPROVE_OPTION && fc.getSelectedFile() != null) {
+            File selected = fc.getSelectedFile();
+            if (!selected.exists()) {
+                selected.mkdirs();
+            }
+            outputFolderField.setText(selected.getAbsolutePath());
         }
 }//GEN-LAST:event_outputBrowseButtonActionPerformed
 
@@ -749,7 +755,12 @@ public class Graph extends javax.swing.JFrame {
                 updateProgress("Success!");
                 List<String> blastCmd = new ArrayList<>();
                 blastCmd.addAll(Arrays.asList(blastLocation + "blastn", "-outfmt", "6", "-query", queryField.getText(), "-db", sequenceAddField.getText(), "-out", ou));
-                blastCmd.addAll(BRIG.tokenizeOptions(blastOptionField.getText()));
+                String blastOptText = blastOptionField.getText() != null ? blastOptionField.getText() : "";
+                blastCmd.addAll(BRIG.tokenizeOptions(blastOptText));
+                int graphThreads = BlastSettings.getBlastThreads();
+                if (graphThreads > 1 && !blastOptText.contains("-num_threads")) {
+                    blastCmd.addAll(Arrays.asList("-num_threads", String.valueOf(graphThreads)));
+                }
                 exec = BRIG.formatCommand(blastCmd);
                 updateProgress(exec);
                 p = BRIG.execCommand(blastCmd);

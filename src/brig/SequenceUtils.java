@@ -144,6 +144,7 @@ public class SequenceUtils {
     @SuppressWarnings("unchecked")
     public static String FormatGenbank(String file, String header, String out, boolean embl, String pOption) throws FileNotFoundException, IOException {
         String error = "";
+        boolean hasSequence = false;
         try (var in = Files.newBufferedReader(Path.of(file));
              var out1 = Files.newBufferedWriter(Path.of(out + ".fna"))) {
             out1.write(">" + header);
@@ -153,14 +154,24 @@ public class SequenceUtils {
             int on = 0;
             while ((line = in.readLine()) != null) {
                 if (on == 1) {
-                    out1.write(line.replaceAll("[^a-zA-Z]+", ""));
-                    out1.newLine();
+                    String seq = line.replaceAll("[^a-zA-Z]+", "");
+                    if (!seq.isEmpty()) {
+                        hasSequence = true;
+                        out1.write(seq);
+                        out1.newLine();
+                    }
                 }
                 if ((line.startsWith("ORIGIN") && !embl)
                         || (embl && line.startsWith("SQ"))) {
                     on = 1;
                 }
             }
+        }
+        if (!hasSequence) {
+            String fmt = embl ? "EMBL" : "GenBank";
+            BRIG.Print("WARNING: " + fmt + " file '" + new java.io.File(file).getName()
+                    + "' contains no sequence data. Check the file has an ORIGIN/SQ section with sequence.");
+            error += "WARNING: No sequence data found in " + file + "\n";
         }
         if ("T".equals(pOption)) {
             try (var out2 = Files.newBufferedWriter(Path.of(out + ".faa"))) {

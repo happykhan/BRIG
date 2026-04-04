@@ -149,8 +149,8 @@ class BRIGCharacterizationTest {
         assertEquals(">test_header", lines.get(0));
         // Regex strips all non-alpha chars (digits, spaces)
         assertEquals("atgcatgcatgcnnnatgcatgc", lines.get(1));
-        // "//" becomes empty string after stripping non-alpha
-        assertEquals("", lines.get(2));
+        // "//" becomes empty after stripping non-alpha and is now skipped
+        assertEquals(2, lines.size());
     }
 
     @Test
@@ -172,6 +172,44 @@ class BRIGCharacterizationTest {
         assertEquals(">embl_header", lines.get(0));
         // Strips digits and spaces from lines after the SQ trigger
         assertEquals("atgcatgcatgcnnnatgcatgc", lines.get(1));
+    }
+
+    // ---------------------------------------------------------------
+    // GenBank with no sequence data — regression for empty-sequence warning
+    // ---------------------------------------------------------------
+
+    @Test
+    void formatGenbank_noOrigin_warnsNoSequence(@TempDir Path tmp) throws Exception {
+        Path gbk = tmp.resolve("empty.gbk");
+        Files.writeString(gbk,
+                "LOCUS       EMPTY     0 bp\n"
+              + "DEFINITION  No sequence here\n"
+              + "//\n");
+
+        String outBase = tmp.resolve("out").toString();
+        String msg = BRIG.FormatGenbank(
+                gbk.toString(), "test_header", outBase, false, "F");
+
+        assertTrue(msg.contains("WARNING"), "Should warn about missing sequence data");
+        // The .fna file should exist but contain only the header
+        List<String> lines = Files.readAllLines(Path.of(outBase + ".fna"));
+        assertEquals(1, lines.size(), "Only header line expected when no sequence");
+        assertEquals(">test_header", lines.get(0));
+    }
+
+    @Test
+    void formatGenbank_emptyOrigin_warnsNoSequence(@TempDir Path tmp) throws Exception {
+        Path gbk = tmp.resolve("empty_origin.gbk");
+        Files.writeString(gbk,
+                "LOCUS       EMPTY     0 bp\n"
+              + "ORIGIN\n"
+              + "//\n");
+
+        String outBase = tmp.resolve("out").toString();
+        String msg = BRIG.FormatGenbank(
+                gbk.toString(), "test_header", outBase, false, "F");
+
+        assertTrue(msg.contains("WARNING"), "Should warn when ORIGIN section has no bases");
     }
 
     // ---------------------------------------------------------------

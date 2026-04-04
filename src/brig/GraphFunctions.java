@@ -250,10 +250,10 @@ public static String parseBlast2Graph(int[] value, int[] repeats, String input, 
                             try {
                                 String queryArg;
                                 if (isGbk) {
-                                    ou = output + SL + "scratch" + SL +  BRIG.FetchFilename(queryFastaFile) + "Vs" + BRIG.FetchFilename(db) + ".tab";
+                                    ou = BRIG.blastOutputPath(output, i, j - 3, queryFastaFile, db);
                                     queryArg = queryFastaFile;
                                 } else {
-                                    ou = output + SL + "scratch" + SL + BRIG.FetchFilename(queryFile) + "Vs" + BRIG.FetchFilename(db) + ".tab";
+                                    ou = BRIG.blastOutputPath(output, i, j - 3, queryFile, db);
                                     queryArg = queryFile;
                                 }
                                 if (System.getProperty("os.name").toLowerCase().indexOf("windows") == -1) {
@@ -261,6 +261,10 @@ public static String parseBlast2Graph(int[] value, int[] repeats, String input, 
                                 }
                                 blastCmd.addAll(Arrays.asList(blastLocation + blastProg, "-outfmt", "6", "-query", queryArg, "-db", db, "-out", ou));
                                 blastCmd.addAll(BRIG.tokenizeOptions(blastOptions));
+                                int graphThreads = BlastSettings.getBlastThreads();
+                                if (graphThreads > 1 && (blastOptions == null || !blastOptions.contains("-num_threads"))) {
+                                    blastCmd.addAll(Arrays.asList("-num_threads", String.valueOf(graphThreads)));
+                                }
                                 error += BRIG.formatCommand(blastCmd) + "\n";
                                 Process q = BRIG.execCommand(blastCmd);
                                 String data;

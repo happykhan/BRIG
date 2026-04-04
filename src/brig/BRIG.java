@@ -707,6 +707,7 @@ public class BRIG extends Thread{
         String queryFastaFile = PROFILE.getRootElement().getAttributeValue("queryFastaFile");
         String output = PROFILE.getRootElement().getAttributeValue("outputFolder");
         String blastOptions = PROFILE.getRootElement().getAttributeValue("blastOptions");
+        if (blastOptions == null) blastOptions = "";
         String blastLocation = "";
         if (PROFILE.getRootElement().getChild("brig_settings") != null) {
             if (PROFILE.getRootElement().getChild("brig_settings").getAttributeValue("blastLocation") != null) {
@@ -718,7 +719,13 @@ public class BRIG extends Thread{
                 }
             }
         }
-        Print( "Reference sequence length: " + NumberFormat.getInstance().format(BRIG.GEN_LENGTH) + " bp");
+        int numThreads = BlastSettings.getBlastThreads();
+        Print("Reference sequence length: " + NumberFormat.getInstance().format(BRIG.GEN_LENGTH) + " bp");
+        if (blastOptions.contains("-num_threads")) {
+            Print("BLAST threads: set in blast options");
+        } else {
+            Print("BLAST threads: " + numThreads);
+        }
         for (int i = 0; i < ringList.size(); i++) {
             Element currentRing = ringList.get(i);
             String ringName = currentRing.getAttributeValue("name");
@@ -799,7 +806,7 @@ public class BRIG extends Thread{
                         } else {
                             Print("  Database exists, reusing cached.");
                         }
-                        String ou = output + SL + "scratch" + SL + FetchFilename(goodRingFile) + "Vs" + FetchFilename(queryFastaFile) + ".tab";
+                        String ou = blastOutputPath(output, i, j, goodRingFile, queryFastaFile);
                         List<String> blastCmd = new ArrayList<>();
                         blastCmd.addAll(Arrays.asList(blastLocation + blastType, "-outfmt", "6", "-query", goodRingFile, "-db", queryFastaFile, "-out", ou));
                         blastCmd.addAll(tokenizeOptions(blastOptions));
@@ -807,6 +814,9 @@ public class BRIG extends Thread{
                             if ("blastp".equals(blastType) || "blastn".equals(blastType)) {
                                 blastCmd.addAll(Arrays.asList("-task", blastType));
                             }
+                        }
+                        if (numThreads > 1 && !blastOptions.contains("-num_threads")) {
+                            blastCmd.addAll(Arrays.asList("-num_threads", String.valueOf(numThreads)));
                         }
                         sequence.get(j).setAttribute("blastResults", ou);
                         File blOut = new File(ou);
@@ -1235,6 +1245,13 @@ public class BRIG extends Thread{
                         if (starte == 0) {
                             starte = 1;
                         }
+                        if (starte > GEN_LENGTH) {
+                            lineNum++;
+                            continue;
+                        }
+                        if (stope > (GEN_LENGTH - 1)) {
+                            stope = GEN_LENGTH - 1;
+                        }
                         if ((temp / custom) >= 1) {
                             out.write("<featureRange color=\"blue\" start=\"" + starte + "\" stop=\"" + stope + "\" "
                                     + "proportionOfThickness=\"1\" />");
@@ -1253,6 +1270,17 @@ public class BRIG extends Thread{
             } catch (Exception e) {
                 log.error("Error processing graph line: {}", line, e);
             }
+        }
+
+        // Check if graph data exceeds sequence length — warn and skip
+        int maxStart = 0;
+        for (int s : start) { if (s > maxStart) maxStart = s; }
+        if (maxStart > GEN_LENGTH) {
+            Print("  WARNING: Graph file '" + new File(location).getName()
+                    + "' has coordinates (max " + maxStart + ") exceeding reference length ("
+                    + GEN_LENGTH + " bp). Skipping this ring.");
+            out.write("</feature>\n");
+            return error;
         }
 
         //IF CUSTOM VALUES HIDE THIS ALL AWAY
@@ -1292,6 +1320,10 @@ public class BRIG extends Thread{
                 int stope = stop.get(j);
                 if (stope > (GEN_LENGTH - 1)) {
                     stope = GEN_LENGTH - 1;
+                }
+                // Skip entries where start exceeds the sequence length
+                if (starte > GEN_LENGTH) {
+                    continue;
                 }
                 if (barHeight > 1 && radiusShift < 0) {
                     //         Print( skew + "\t" +"\t" +barHeight +"\t" +radiusShift  +"\tSmall");
@@ -1369,187 +1401,126 @@ public class BRIG extends Thread{
         return error;
     }
 
+    /**
+     * Reads all non-header bases from a FASTA file into a single StringBuilder,
+     * recording contig boundaries (with spacer offsets) for multi-contig files.
+     */
+    private static class SequenceData {
+        final StringBuilder seq = new StringBuilder();
+        final List<int[]> contigBoundaries = new ArrayList<>(); // [start, spacerAfter]
+    }
+
+    private static SequenceData readSequence(String fastaFile) throws IOException {
+        SequenceData data = new SequenceData();
+        int contigStart = 0;
+        int contigCount = 0;
+        int spacer = 0;
+        if (PROFILE != null && PROFILE.getRootElement().getAttributeValue("spacer") != null) {
+            try { spacer = Integer.parseInt(PROFILE.getRootElement().getAttributeValue("spacer")); }
+            catch (NumberFormatException ignored) {}
+        }
+        try (BufferedReader rdr = new BufferedReader(new FileReader(fastaFile))) {
+            String line;
+            while ((line = rdr.readLine()) != null) {
+                if (line.startsWith(">")) {
+                    if (contigCount > 0 && spacer > 0) {
+                        data.contigBoundaries.add(new int[]{contigStart, spacer});
+                        contigStart = data.seq.length() + spacer;
+                    }
+                    contigCount++;
+                } else {
+                    data.seq.append(line.toUpperCase());
+                }
+            }
+        }
+        return data;
+    }
+
+    private static int countGC(CharSequence seq, int from, int to) {
+        int gc = 0;
+        for (int i = from; i < to; i++) {
+            char c = seq.charAt(i);
+            if (c == 'G' || c == 'C') gc++;
+        }
+        return gc;
+    }
+
+    /**
+     * Computes the sliding-window step size. For small sequences we use 1 bp
+     * steps so every arc is narrow and the plot looks smooth; for large genomes
+     * we use div/2 to keep the XML size reasonable.
+     */
+    private static int gcStep(int div, int seqLen) {
+        // Target ~3000 output segments; never less than 1
+        return Math.max(1, Math.min(div / 2, seqLen / 3000));
+    }
+
     private static String CGContent(BufferedWriter out, String QUERY_MASTER_FILE) throws IOException {
-        int div = autoScale(GEN_LENGTH);
+        int div = resolveGcWindow();
         String error = "";
-        int len = 0;
-        int cPlusG = 0;
-        int totalLen = 0;
+        SequenceData data = readSequence(QUERY_MASTER_FILE);
+        StringBuilder seq = data.seq;
+        int seqLen = seq.length();
+        int step = gcStep(div, seqLen);
+
+        // First pass: compute stats
         double average = 0.0;
-        double maxDeviation = 0.0;
         double min = 10.0;
         double max = 0.0;
         int totalWindow = 0;
-        String color = "";
-        String line = "";
-        out.write("<feature decoration=\"arc\" opacity = \"1.0\">");
-        out.newLine();
-        try (BufferedReader first = new BufferedReader(new FileReader(QUERY_MASTER_FILE))) {
-            while ((line = first.readLine()) != null) {
-                if (!line.contains(">")) {
-                    for (int f = 0; f < line.length(); f++) {
-                        if (len >= div) {
-                            double skew = (double) cPlusG / (double) len;
-                            skew = 0.5 + skew / 2.0;
-                            if ((cPlusG) == 0) {
-                                skew = 0.5;
-                            }
-                            average += skew;
-                            if (skew > max) {
-                                max = skew;
-                            }
-                            if (skew < min) {
-                                min = skew;
-                            }
-                            cPlusG = 0;
-                            totalLen += len;
-                            len = 0;
-                            totalWindow++;
-                        }
-                        int G = "G".compareToIgnoreCase(String.valueOf(line.charAt(f)));
-                        int C = "C".compareToIgnoreCase(String.valueOf(line.charAt(f)));
-                        if (C == 0 || G == 0) {
-                            cPlusG++;
-                        }
-                        len++;
-                    }
-                }
-            }
-        }
-        if (len > 0) {
-            double skew = (double) cPlusG / (double) len;
-            skew = 0.5 + skew / 2.0;
-            if ((cPlusG) == 0) {
-                skew = 0.5;
-            }
+        for (int pos = 0; pos + div <= seqLen; pos += step) {
+            int gc = countGC(seq, pos, pos + div);
+            double skew = (gc == 0) ? 0.5 : 0.5 + ((double) gc / div) / 2.0;
             average += skew;
-            if (skew > max) {
-                max = skew;
-            }
-            if (skew < min) {
-                min = skew;
-            }
+            if (skew > max) max = skew;
+            if (skew < min) min = skew;
+            totalWindow++;
         }
-        average = average / (double) totalWindow;
-        if ((max - average) > (average - min)) {
-            maxDeviation = max - average;
-        } else {
-            maxDeviation = average - min;
-        }
-        len = 0;
-        cPlusG = 0;
-        totalLen = 1;
-        double radiusShift = 0.0;
-        double barHeight = 0.0;
+        if (totalWindow == 0) { out.write("<feature decoration=\"arc\" opacity = \"1.0\"></feature>"); out.newLine(); return ""; }
+        average /= totalWindow;
+        double maxDeviation = Math.max(max - average, average - min);
+        if (maxDeviation == 0) maxDeviation = 1;
+
         error += ("Maximum value:  " + max + "\n");
         error += ("Minimum value:  " + min + "\n");
         error += ("Average value: " + average + "\n\n");
-        try (BufferedReader first2 = new BufferedReader(new FileReader(QUERY_MASTER_FILE))) {
-        int lineCount = 0;
-        while ((line = first2.readLine()) != null) {
-            if (line.contains(">")) {
-                lineCount++;
-            }
-            if (line.contains(">") && lineCount > 1) {
-                if (BRIG.PROFILE.getRootElement().getAttributeValue("spacer") != null) {
-                    if (Integer.parseInt(BRIG.PROFILE.getRootElement().getAttributeValue("spacer")) > 0) {
-                        double skew = (double) cPlusG / (double) len;
-                        skew = 0.5 + skew / 2.0;
-                        if ((cPlusG) == 0) {
-                            skew = 0.5;
-                        }
-                        if (skew > average) {
-                            color = "rgb(0,0,0)";
-                            barHeight = skew - average;
-                            barHeight = barHeight * 0.5 / maxDeviation;
-                            radiusShift = 0.5 + barHeight / 2.0;
-                        } else if (skew < average) {
-                            color = "rgb(0,0,0)";
-                            barHeight = average - skew;
-                            barHeight = barHeight * 0.5 / maxDeviation;
-                            radiusShift = 0.5 - barHeight / 2.0;
-                        } else {
-                            color = "rgb(0,0,0)";
-                            radiusShift = 0.5;
-                        }
-                        if((totalLen + len) < GEN_LENGTH  ){
-                        out.write("<featureRange color=\"" + color + "\" start=\"" + totalLen + "\" stop=\"" + (totalLen + len) + "\" "
-                                + "proportionOfThickness=\"" + barHeight + "\" radiusAdjustment=\"" + radiusShift + "\" />");
-                        }
-                        out.newLine();
-                        cPlusG = 0;
-                        totalLen += len;
-                        len = 0;
-                        totalLen += Integer.parseInt(BRIG.PROFILE.getRootElement().getAttributeValue("spacer"));
-                    }
-                }
-            } else if (!line.contains(">")) {
-                for (int f = 0; f < line.length(); f++) {
-                    if (len >= div) {
-                        double skew = (double) cPlusG / (double) len;
-                        skew = 0.5 + skew / 2.0;
-                        if ((cPlusG) == 0) {
-                            skew = 0.5;
-                        }
-                        if (skew > average) {
-                            color = "rgb(0,0,0)";
-                            barHeight = skew - average;
-                            barHeight = barHeight * 0.5 / maxDeviation;
-                            radiusShift = 0.5 + barHeight / 2.0;
-                        } else if (skew < average) {
-                            color = "rgb(0,0,0)";
-                            barHeight = average - skew;
-                            barHeight = barHeight * 0.5 / maxDeviation;
-                            radiusShift = 0.5 - barHeight / 2;
-                        } else {
-                            color = "rgb(0,0,0)";
-                            radiusShift = 0.5;
-                        }
-                        if((totalLen + len) < GEN_LENGTH  ){
-                        out.write("<featureRange color=\"" + color + "\" start=\"" + totalLen + "\" stop=\"" + (totalLen + len) + "\" "
-                                + "proportionOfThickness=\"" + barHeight + "\" radiusAdjustment=\"" + radiusShift + "\" />");
-                        }
-                        out.newLine();
-                        cPlusG = 0;
-                        totalLen += len;
-                        len = 0;
-                    }
-                    int G = "G".compareToIgnoreCase(String.valueOf(line.charAt(f)));
-                    int C = "C".compareToIgnoreCase(String.valueOf(line.charAt(f)));
-                    if (C == 0 || G == 0) {
-                        cPlusG++;
-                    }
-                    len++;
-                }
-            }
 
-        }
-        }
-        if (len > 0) {
-            double skew = (double) cPlusG / (double) len;
-            skew = 0.5 + skew / 2.0;
-            if ((cPlusG) == 0) {
-                skew = 0.5;
+        // Second pass: write features with sliding window
+        out.write("<feature decoration=\"arc\" opacity = \"1.0\">");
+        out.newLine();
+        int spacerOffset = 0;
+        int boundaryIdx = 0;
+
+        int lastPos = seqLen - div; // inclusive upper bound so we cover the tail
+        for (int pos = 0; pos <= lastPos; pos += step) {
+            // Adjust for contig spacers
+            while (boundaryIdx < data.contigBoundaries.size() && pos >= data.contigBoundaries.get(boundaryIdx)[0]) {
+                spacerOffset += data.contigBoundaries.get(boundaryIdx)[1];
+                boundaryIdx++;
             }
+            int gc = countGC(seq, pos, pos + div);
+            double skew = (gc == 0) ? 0.5 : 0.5 + ((double) gc / div) / 2.0;
+            double barHeight;
+            double radiusShift;
             if (skew > average) {
-                color = "rgb(0,0,0)";
-                barHeight = skew - average;
-                barHeight = barHeight * 0.5 / maxDeviation;
+                barHeight = (skew - average) * 0.5 / maxDeviation;
                 radiusShift = 0.5 + barHeight / 2.0;
             } else if (skew < average) {
-                color = "rgb(0,0,0)";
-                barHeight = average - skew;
-                barHeight = barHeight * 0.5 / maxDeviation;
-                radiusShift = 0.5 - barHeight / 2;
+                barHeight = (average - skew) * 0.5 / maxDeviation;
+                radiusShift = 0.5 - barHeight / 2.0;
             } else {
-                color = "rgb(0,0,0)";
+                barHeight = 0;
                 radiusShift = 0.5;
             }
-            if((totalLen + len) < GEN_LENGTH  ){
-            out.write("<featureRange color=\"" + color + "\" start=\"" + totalLen + "\" stop=\"" + (totalLen + len) + "\" "
-                    + "proportionOfThickness=\"" + barHeight + "\" radiusAdjustment=\"" + radiusShift + "\" />");
-          }
-            out.newLine();
+            int start = pos + 1 + spacerOffset;
+            boolean lastSegment = (pos + step > lastPos);
+            int segEnd = lastSegment ? seqLen : pos + step;
+            int stop = segEnd + spacerOffset;
+            if (stop <= GEN_LENGTH) {
+                out.write("<featureRange color=\"rgb(0,0,0)\" start=\"" + start + "\" stop=\"" + stop + "\" "
+                        + "proportionOfThickness=\"" + barHeight + "\" radiusAdjustment=\"" + radiusShift + "\" />");
+                out.newLine();
+            }
         }
         out.write("</feature>");
         out.newLine();
@@ -1557,185 +1528,128 @@ public class BRIG extends Thread{
     }
 
     private static String CGskew(BufferedWriter out, String QUERY_MASTER_FILE) throws IOException {
+        int div = resolveGcWindow();
         String error = "";
-        int div = autoScale(GEN_LENGTH);
-        out.write("<feature decoration=\"arc\" opacity = \"1.0\">");
-        out.newLine();
-        int len = 0;
-        int cPlusG = 0;
-        int cMinusG = 0;
-        int totalLen = 0;
+        SequenceData data = readSequence(QUERY_MASTER_FILE);
+        StringBuilder seq = data.seq;
+        int seqLen = seq.length();
+        int step = gcStep(div, seqLen);
+
+        // First pass: compute stats
         double average = 0.0;
-        double maxDeviation = 0.0;
         double min = 10.0;
         double max = 0.0;
         int totalWindow = 0;
-        String color = "";
-        String line = "";
-        try (BufferedReader first = new BufferedReader(new FileReader(QUERY_MASTER_FILE))) {
-        while ((line = first.readLine()) != null) {
-            if (!line.contains(">")) {
-                for (int f = 0; f
-                        < line.length(); f++) {
-                    if (len >= div) {
-                        double skew = (double) cMinusG / (double) cPlusG;
-                        skew = 0.5 + skew / 2.0;
-                        if ((cPlusG) == 0) {
-                            skew = 0.5;
-                        }
-                        average += skew;
-                        if (skew > max) {
-                            max = skew;
-                        }
-                        if (skew < min) {
-                            min = skew;
-                        }
-                        cPlusG = 0;
-                        cMinusG = 0;
-                        totalLen += len;
-                        len = 0;
-                        totalWindow++;
-                    }
-                    int G = "G".compareToIgnoreCase(String.valueOf(line.charAt(f)));
-                    int C = "C".compareToIgnoreCase(String.valueOf(line.charAt(f)));
-                    if (C == 0) {
-                        cMinusG++;
-                        cPlusG++;
-                    } else if (G == 0) {
-                        cMinusG--;
-                        cPlusG++;
-                    }
-                    len++;
-                }
+        for (int pos = 0; pos + div <= seqLen; pos += step) {
+            int cPlusG = 0, cMinusG = 0;
+            for (int i = pos; i < pos + div; i++) {
+                char c = seq.charAt(i);
+                if (c == 'C') { cPlusG++; cMinusG++; }
+                else if (c == 'G') { cPlusG++; cMinusG--; }
             }
-        }
-        if (len > 0) {
-            double skew = (double) cMinusG / (double) cPlusG;
-            skew = 0.5 + skew / 2.0;
-            if ((cPlusG) == 0) {
-                skew = 0.5;
-            }
+            double skew = (cPlusG == 0) ? 0.5 : 0.5 + ((double) cMinusG / cPlusG) / 2.0;
             average += skew;
-            if (skew > max) {
-                max = skew;
-            }
-            if (skew < min) {
-                min = skew;
-            }
+            if (skew > max) max = skew;
+            if (skew < min) min = skew;
+            totalWindow++;
         }
-        average = average / (double) totalWindow;
-        if ((max - average) > (average - min)) {
-            maxDeviation = max - average;
-        } else {
-            maxDeviation = average - min;
-        }
-        }
-        len = 0;
-        cPlusG = 0;
-        cMinusG = 0;
-        totalLen = 1;
-        double radiusShift = 0.0;
-        double barHeight = 0.0;
+        if (totalWindow == 0) { out.write("<feature decoration=\"arc\" opacity = \"1.0\"></feature>"); out.newLine(); return ""; }
+        average /= totalWindow;
+        double maxDeviation = Math.max(max - average, average - min);
+        if (maxDeviation == 0) maxDeviation = 1;
+
         error += ("Maximum value:  " + max + "\n");
         error += ("Minimum value:  " + min + "\n");
         error += ("Average value: " + average + "\n\n");
-        try (BufferedReader first2 = new BufferedReader(new FileReader(QUERY_MASTER_FILE))) {
-        int lineCount = 0;
-        while ((line = first2.readLine()) != null) {
-            if (line.contains(">")) {
-                lineCount++;
+
+        // Second pass: write features with sliding window
+        out.write("<feature decoration=\"arc\" opacity = \"1.0\">");
+        out.newLine();
+        int spacerOffset = 0;
+        int boundaryIdx = 0;
+
+        int lastPos = seqLen - div;
+        for (int pos = 0; pos <= lastPos; pos += step) {
+            while (boundaryIdx < data.contigBoundaries.size() && pos >= data.contigBoundaries.get(boundaryIdx)[0]) {
+                spacerOffset += data.contigBoundaries.get(boundaryIdx)[1];
+                boundaryIdx++;
             }
-            if (line.contains(">") && lineCount > 1) {
-                if (BRIG.PROFILE.getRootElement().getAttributeValue("spacer") != null) {
-                    if (Integer.parseInt(BRIG.PROFILE.getRootElement().getAttributeValue("spacer")) > 0) {
-                        double skew = (double) cMinusG / (double) cPlusG;
-                        skew = 0.5 + skew / 2.0;
-                        if ((cPlusG) == 0) {
-                            skew = 0.5;
-                        }
-                        if (skew > average) {
-                            color = "rgb(152,0,152)";
-                            barHeight = skew - average;
-                            barHeight = barHeight * 0.5 / maxDeviation;
-                            radiusShift = 0.5 + barHeight / 2.0;
-                        } else if (skew < average) {
-                            color = "rgb(0,152,0)";
-                            barHeight = average - skew;
-                            barHeight = barHeight * 0.5 / maxDeviation;
-                            radiusShift = 0.5 - barHeight / 2;
-                        } else {
-                            color = "rgb(152,0,152)";
-                            radiusShift = 0.5;
-                        }
-                        cMinusG = 0;
-                        cPlusG = 0;
-                        totalLen += len;
-                        len = 0;
-                        totalLen += Integer.parseInt(BRIG.PROFILE.getRootElement().getAttributeValue("spacer"));
-                    }
-                }
+            int cPlusG = 0, cMinusG = 0;
+            for (int i = pos; i < pos + div; i++) {
+                char c = seq.charAt(i);
+                if (c == 'C') { cPlusG++; cMinusG++; }
+                else if (c == 'G') { cPlusG++; cMinusG--; }
             }
-            if (!line.contains(">")) {
-                for (int f = 0; f < line.length(); f++) {
-                    if (len >= div) {
-                        double skew = (double) cMinusG / (double) cPlusG;
-                        skew = 0.5 + skew / 2.0;
-                        if ((cPlusG) == 0) {
-                            skew = 0.5;
-                        }
-                        if (skew > average) {
-                            color = "rgb(152,0,152)";
-                            barHeight = skew - average;
-                            barHeight = barHeight * 0.5 / maxDeviation;
-                            radiusShift = 0.5 + barHeight / 2.0;
-                        } else if (skew < average) {
-                            color = "rgb(0,152,0)";
-                            barHeight = average - skew;
-                            barHeight = barHeight * 0.5 / maxDeviation;
-                            radiusShift = 0.5 - barHeight / 2;
-                        } else {
-                            color = "rgb(152,0,152)";
-                            radiusShift = 0.5;
-                        }
-                        out.write("<featureRange color=\"" + color + "\" start=\"" + totalLen + "\" stop=\"" + (totalLen + len) + "\" "
-                                + "proportionOfThickness=\"" + barHeight + "\" radiusAdjustment=\"" + radiusShift + "\" />");
-                        out.newLine();
-                        cPlusG = 0;
-                        cMinusG = 0;
-                        totalLen += len;
-                        len = 0;
-                    }
-                    int G = "G".compareToIgnoreCase(String.valueOf(line.charAt(f)));
-                    int C = "C".compareToIgnoreCase(String.valueOf(line.charAt(f)));
-                    if (C == 0) {
-                        cMinusG++;
-                        cPlusG++;
-                    } else if (G == 0) {
-                        cMinusG--;
-                        cPlusG++;
-                    }
-                    len++;
-                }
+            double skew = (cPlusG == 0) ? 0.5 : 0.5 + ((double) cMinusG / cPlusG) / 2.0;
+            String color;
+            double barHeight, radiusShift;
+            if (skew > average) {
+                color = "rgb(152,0,152)";
+                barHeight = (skew - average) * 0.5 / maxDeviation;
+                radiusShift = 0.5 + barHeight / 2.0;
+            } else if (skew < average) {
+                color = "rgb(0,152,0)";
+                barHeight = (average - skew) * 0.5 / maxDeviation;
+                radiusShift = 0.5 - barHeight / 2.0;
+            } else {
+                color = "rgb(152,0,152)";
+                barHeight = 0;
+                radiusShift = 0.5;
             }
-        }
-        }
-        if (len > 0) {
-            double skew = (double) cMinusG / (double) cPlusG;
-            skew = 0.5 + skew / 2.0;
-            if ((cPlusG) == 0) {
-                skew = 0.5;
+            int start = pos + 1 + spacerOffset;
+            boolean lastSegment = (pos + step > lastPos);
+            int segEnd = lastSegment ? seqLen : pos + step;
+            int stop = segEnd + spacerOffset;
+            if (stop <= GEN_LENGTH) {
+                out.write("<featureRange color=\"" + color + "\" start=\"" + start + "\" stop=\"" + stop + "\" "
+                        + "proportionOfThickness=\"" + barHeight + "\" radiusAdjustment=\"" + radiusShift + "\" />");
+                out.newLine();
             }
-            out.write("<featureRange color=\"rgb(0,0,0)\" start=\"" + totalLen + "\" stop=\"" + (totalLen + len - 2) + "\" "
-                    + "proportionOfThickness=\"" + skew + "\" radiusAdjustment=\"0.5\" />");
-            out.newLine();
         }
         out.write("</feature>");
         out.newLine();
         return error;
     }
 
+    /**
+     * Auto-scales the GC window size so there are ~3000 segments around the ring.
+     * Enforces a minimum of 50 bp so small sequences (e.g. plasmids) have
+     * enough bases per window for smooth GC variation. The sliding window
+     * in CGContent/CGskew (step = window/2) then produces many overlapping
+     * segments for visual smoothness.
+     */
     public  static int autoScale(int length  ){
-        return (length / 3000);
+        return Math.max(50, length / 3000);
+    }
+
+    /**
+     * Builds the BLAST output .tab path, prefixed with ring/sequence indices
+     * to avoid collision when two files share the same name (issue #53).
+     */
+    public static String blastOutputPath(String outputFolder, int ringIndex, int seqIndex,
+                                          String ringFile, String queryFile) {
+        return outputFolder + SL + "scratch" + SL
+                + "r" + ringIndex + "s" + seqIndex + "_"
+                + FetchFilename(ringFile) + "Vs" + FetchFilename(queryFile) + ".tab";
+    }
+
+    /**
+     * Returns the GC skew/content window size.
+     * Reads {@code gcWindow} from {@code brig_settings} if set (issue #56);
+     * falls back to {@link #autoScale(int)} otherwise.
+     */
+    public static int resolveGcWindow() {
+        if (PROFILE != null && PROFILE.getRootElement().getChild("brig_settings") != null) {
+            String val = PROFILE.getRootElement().getChild("brig_settings").getAttributeValue("gcWindow");
+            if (val != null && !val.isEmpty()) {
+                try {
+                    int w = Integer.parseInt(val);
+                    if (w > 0) return w;
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        return autoScale(GEN_LENGTH);
     }
 }
 
