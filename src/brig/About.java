@@ -66,7 +66,9 @@ public class About extends javax.swing.JFrame {
             }
         });
 
-        versionLabel.setText("Blast Ring Image Generator (BRIG) Version 0.81");
+        String v = BRIG.class.getPackage().getImplementationVersion();
+        if (v == null) v = "dev";
+        versionLabel.setText("Blast Ring Image Generator (BRIG) Version " + v);
 
         jLabel2.setText("Copyright Nabil Alikhan. 2010-2025.");
 

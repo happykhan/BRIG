@@ -140,17 +140,25 @@ class BRIGStaticMethodsTest {
 
     @Test
     void autoScale_smallSequence() {
-        assertEquals(16, BRIG.autoScale(50_000));
+        // 50_000 / 3000 = 16, clamped to minimum of 50
+        assertEquals(50, BRIG.autoScale(50_000));
     }
 
     @Test
     void autoScale_zeroLength() {
-        assertEquals(0, BRIG.autoScale(0));
+        assertEquals(50, BRIG.autoScale(0));
+    }
+
+    @Test
+    void autoScale_smallPlasmid() {
+        // 3000 / 3000 = 1, but minimum is 50
+        assertEquals(50, BRIG.autoScale(3000));
     }
 
     @Test
     void autoScale_exactMultiple() {
-        assertEquals(1, BRIG.autoScale(3000));
+        // 150000 / 3000 = 50 = minimum, so same result
+        assertEquals(50, BRIG.autoScale(150_000));
     }
 
     // -------------------------------------------------------------------
@@ -339,16 +347,13 @@ class BRIGStaticMethodsTest {
 
     @Test
     void blastOutputPath_differentRingIndices_produceDistinctPaths() {
-        // Verify that the naming scheme ring{i}seq{j}_<filename> is distinct for
-        // two files with the same basename but at different ring positions.
         String output = "/tmp/out";
         String queryFastaFile = "/ref/reference.fna";
         String fileA = "/folderA/genome.fna";
         String fileB = "/folderB/genome.fna";
 
-        // Simulate the path formula used in RunBlast (ring 0 seq 0 vs ring 1 seq 0)
-        String ouA = output + "/scratch/r0s0_" + BRIG.FetchFilename(fileA) + "Vs" + BRIG.FetchFilename(queryFastaFile) + ".tab";
-        String ouB = output + "/scratch/r1s0_" + BRIG.FetchFilename(fileB) + "Vs" + BRIG.FetchFilename(queryFastaFile) + ".tab";
+        String ouA = BRIG.blastOutputPath(output, 0, 0, fileA, queryFastaFile);
+        String ouB = BRIG.blastOutputPath(output, 1, 0, fileB, queryFastaFile);
 
         assertNotEquals(ouA, ouB,
                 "Two same-named files in different rings must produce distinct BLAST output paths");
@@ -361,11 +366,70 @@ class BRIGStaticMethodsTest {
         String fileA = "/folderA/genome.fna";
         String fileB = "/folderB/genome.fna";
 
-        String ouA = output + "/scratch/r0s0_" + BRIG.FetchFilename(fileA) + "Vs" + BRIG.FetchFilename(queryFastaFile) + ".tab";
-        String ouB = output + "/scratch/r0s1_" + BRIG.FetchFilename(fileB) + "Vs" + BRIG.FetchFilename(queryFastaFile) + ".tab";
+        String ouA = BRIG.blastOutputPath(output, 0, 0, fileA, queryFastaFile);
+        String ouB = BRIG.blastOutputPath(output, 0, 1, fileB, queryFastaFile);
 
         assertNotEquals(ouA, ouB,
                 "Two same-named files in different sequence slots must produce distinct BLAST output paths");
+    }
+
+    // -------------------------------------------------------------------
+    // blastOutputPath helper (extracted from RunBlast)
+    // -------------------------------------------------------------------
+
+    @Test
+    void blastOutputPath_containsRingAndSeqIndices() {
+        String path = BRIG.blastOutputPath("/out", 3, 7, "/dir/genome.fna", "/ref/ref.fna");
+        assertTrue(path.contains("r3s7_"), "Path must contain ring/seq prefix");
+        assertTrue(path.endsWith(".tab"), "Path must end with .tab");
+    }
+
+    @Test
+    void blastOutputPath_usesFilenamesNotFullPaths() {
+        String path = BRIG.blastOutputPath("/out", 0, 0, "/deep/dir/genome.fna", "/other/ref.fna");
+        assertFalse(path.contains("/deep/dir/"), "Path should not contain full directory of ring file");
+        assertTrue(path.contains("genome.fna"));
+        assertTrue(path.contains("ref.fna"));
+    }
+
+    // -------------------------------------------------------------------
+    // autoScale — minimum window for small sequences
+    // -------------------------------------------------------------------
+
+    @Test
+    void autoScale_plasmid3kb_returnsMinimum50() {
+        // 3000 bp plasmid: 3000/3000 = 1, clamped to 50
+        assertEquals(50, BRIG.autoScale(3000));
+    }
+
+    @Test
+    void autoScale_largeGenome_scalesNormally() {
+        // 5 Mbp: 5000000/3000 = 1666, well above minimum
+        assertEquals(1666, BRIG.autoScale(5_000_000));
+        assertTrue(BRIG.autoScale(5_000_000) > 50);
+    }
+
+    // -------------------------------------------------------------------
+    // Default BLAST threads — min(2, available)
+    // -------------------------------------------------------------------
+
+    @Test
+    void getBlastThreads_default_atMostTwo() {
+        BRIG.PROFILE = null;
+        int threads = BlastSettings.getBlastThreads();
+        assertTrue(threads >= 1 && threads <= 2,
+                "Default threads should be min(2, CPUs) but was " + threads);
+    }
+
+    @Test
+    void getBlastThreads_profileOverride_returnsConfiguredValue() {
+        Document doc = new Document(new Element("BRIG"));
+        Element settings = new Element("brig_settings");
+        settings.setAttribute("blastThreads", "8");
+        doc.getRootElement().addContent(settings);
+        BRIG.PROFILE = doc;
+
+        assertEquals(8, BlastSettings.getBlastThreads());
     }
 
     // -------------------------------------------------------------------

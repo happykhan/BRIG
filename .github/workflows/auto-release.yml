@@ -37,28 +37,35 @@ jobs:
 
       - name: Bump patch version
         id: new_version
+        env:
+          CURRENT: ${{ steps.current_version.outputs.version }}
         run: |
-          CURRENT=${{ steps.current_version.outputs.version }}
           # Split on dots and bump patch
-          MAJOR=$(echo $CURRENT | cut -d. -f1)
-          MINOR=$(echo $CURRENT | cut -d. -f2)
-          PATCH=$(echo $CURRENT | cut -d. -f3)
+          MAJOR=$(echo "$CURRENT" | cut -d. -f1)
+          MINOR=$(echo "$CURRENT" | cut -d. -f2)
+          PATCH=$(echo "$CURRENT" | cut -d. -f3)
           NEW_PATCH=$((PATCH + 1))
           NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version: $NEW_VERSION"
 
       - name: Set new version in pom.xml
-        run: mvn versions:set -DnewVersion=${{ steps.new_version.outputs.version }} -DgenerateBackupPoms=false -q
+        env:
+          NEW_VERSION: ${{ steps.new_version.outputs.version }}
+        run: mvn versions:set -DnewVersion="$NEW_VERSION" -DgenerateBackupPoms=false -q
 
       - name: Commit version bump
+        env:
+          NEW_VERSION: ${{ steps.new_version.outputs.version }}
         run: |
           git add pom.xml
-          git commit -m "chore: bump version to ${{ steps.new_version.outputs.version }} [skip ci]"
+          git commit -m "chore: bump version to ${NEW_VERSION} [no ci]"
 
       - name: Create and push tag
+        env:
+          NEW_VERSION: ${{ steps.new_version.outputs.version }}
         run: |
-          TAG="v${{ steps.new_version.outputs.version }}"
+          TAG="v${NEW_VERSION}"
           git tag "$TAG"
           git push origin master
           git push origin "$TAG"

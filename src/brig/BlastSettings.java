@@ -22,7 +22,7 @@ public class BlastSettings {
     private static final Logger log = LoggerFactory.getLogger(BlastSettings.class);
 
     public static int getBlastThreads() {
-        int defaultThreads = Runtime.getRuntime().availableProcessors();
+        int defaultThreads = Math.min(2, Runtime.getRuntime().availableProcessors());
         if (BRIG.PROFILE == null) return defaultThreads;
         Element settings = BRIG.PROFILE.getRootElement().getChild("brig_settings");
         if (settings != null) {

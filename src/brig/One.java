@@ -400,9 +400,14 @@ private DefaultListModel refModel;
                 }
             }
             fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-            int result = fc.showOpenDialog(this);
+            fc.setDialogTitle("Select output folder");
+            int result = fc.showDialog(this, "Select");
             if (result == JFileChooser.APPROVE_OPTION && fc.getSelectedFile() != null) {
-                outputFolderField.setText(fc.getSelectedFile().toString());
+                File selected = fc.getSelectedFile();
+                if (!selected.exists()) {
+                    selected.mkdirs();
+                }
+                outputFolderField.setText(selected.toString());
             }
         } catch (Exception e) {
             log.error("Error in output browse button", e);
@@ -941,7 +946,11 @@ private DefaultListModel refModel;
 
     public void reload() {
         queryField.setText(BRIG.PROFILE.getRootElement().getAttributeValue("queryFile"));
-        blastOptionField.setText(BRIG.PROFILE.getRootElement().getAttributeValue("blastOptions"));
+        String opts = BRIG.PROFILE.getRootElement().getAttributeValue("blastOptions");
+        if (opts == null || opts.isEmpty()) {
+            opts = "-evalue 1e-5 -num_threads " + BlastSettings.getBlastThreads();
+        }
+        blastOptionField.setText(opts);
         outputFolderField.setText(BRIG.PROFILE.getRootElement().getAttributeValue("outputFolder"));
         String out = "";
         List<Element> oldRefs = BRIG.PROFILE.getRootElement().getChildren("refDir");

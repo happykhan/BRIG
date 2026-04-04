@@ -593,10 +593,11 @@ public class CustomXML extends javax.swing.JFrame {
     }//GEN-LAST:event_inputDataItemStateChanged
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        File text = new File (fileLocation.getText());
+        String fieldText = fileLocation.getText();
         JFileChooser fc = new JFileChooser();
-        if (text.exists()) {
-            if (text.getParentFile().isDirectory()) {
+        if (fieldText != null && !fieldText.isEmpty()) {
+            File text = new File(fieldText);
+            if (text.exists() && text.getParentFile() != null && text.getParentFile().isDirectory()) {
                 fc = new JFileChooser(text.getParent());
             }
         }
