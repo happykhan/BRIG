@@ -1,4 +1,4 @@
-# BRIG v1.1.0
+# BRIG v1.1.1
 
 ## Highlights
 
