@@ -3,6 +3,8 @@
 [![CI](https://github.com/happykhan/BRIG/actions/workflows/ci.yml/badge.svg)](https://github.com/happykhan/BRIG/actions/workflows/ci.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GitHub release](https://img.shields.io/github/v/release/happykhan/BRIG)](https://github.com/happykhan/BRIG/releases/latest)
+![SourceForge Downloads](https://img.shields.io/sourceforge/dm/brig)
+![SourceForge Downloads](https://img.shields.io/sourceforge/dt/brig)
 
 BRIG is a cross-platform (Windows/Mac/Linux) application that displays circular comparison images of multiple genomes using BLAST. It is designed to handle genome assembly data and can show similarity, coverage, annotations and more as concentric rings around a reference sequence.
 
