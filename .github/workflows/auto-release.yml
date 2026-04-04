@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
 
     steps:
       - uses: actions/checkout@v6
@@ -49,4 +50,9 @@ jobs:
           TAG="v${NEW_VERSION}"
           git tag "$TAG"
           git push origin "$TAG"
-          echo "Created tag $TAG — release workflow will build packages"
+          echo "Created tag $TAG"
+
+      - name: Trigger release workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run release.yml --ref "v${NEW_VERSION}"
