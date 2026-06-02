@@ -16,7 +16,7 @@ jobs:
           java-version: 25
 
       - name: Install pixi
-        uses: prefix-dev/setup-pixi@v0.8.1
+        uses: prefix-dev/setup-pixi@v0.9.6
         with:
           pixi-version: latest
 
